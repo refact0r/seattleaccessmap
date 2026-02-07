@@ -10,13 +10,6 @@ venv/
 env/
 ENV/
 
-# Analysis outputs
-everyday/output/
-
-# Data files (large)
-*.csv
-*.json
-
 # OS
 .DS_Store
 
