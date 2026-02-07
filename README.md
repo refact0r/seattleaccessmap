@@ -1,24 +1,22 @@
-# Datathon — Access to Everyday Life Track
+# DubsTech Datathon Project: City Accessibility Analysis
 
 ## Overview
 
-Hackathon project analyzing the **Project Sidewalk Seattle Accessibility Dataset** (~82k crowdsourced observations of sidewalk conditions). The goal is to identify specific streets and areas with severe, concentrated accessibility problems using density-based clustering.
+Hackathon project using the **Project Sidewalk Seattle Accessibility Dataset** (~82k crowdsourced observations of sidewalk conditions). The goal is to both analyze the data, create a map visualization, and most importantly to build a routing tool that finds alternative accessible paths that minimize exposure to accessibility barriers for people with mobility challenges.
 
-Track prompt: `prompts/access-to-everyday-life.md`
+Hackathon prompt: `reference/access-to-everyday-life.md`. We're deviating a little from the prompt's questions (we just want to make a cool project) but still addressing the core themes.
 
 ## Dataset
 
-- **Location:** `data/Access_to_Everyday_Life_Dataset.csv`
-- **Records:** 81,973
-- **Missing severity:** 2,251 (2.7%) — rows with no severity rating, dropped for clustering/severity analysis
-- **Columns (renamed in code):**
-  - `lng`, `lat` — coordinates
-  - `id` — unique observation ID (`properties/attribute_id`)
-  - `label_type` — 7 types: `CurbRamp`, `NoCurbRamp`, `NoSidewalk`, `Obstacle`, `Occlusion`, `SurfaceProblem`, `Other`
-  - `neighborhood` — 50 neighborhoods
-  - `severity` — 1-5 scale (float, some NaN)
-  - `is_temporary` — boolean
-- **No other data quality issues found.** Coordinates are clean, types are consistent.
+- Location: `data/data_clean.csv` (`data/data.csv` is the raw dataset)
+- Records: 79,722 (dropped 2,251 rows with missing severity ratings)
+- Columns:
+  - `lon`, `lat` - coordinates
+  - `id` - unique observation ID
+  - `label` - 7 types: `CurbRamp`, `NoCurbRamp`, `NoSidewalk`, `Obstacle`, `SurfaceProblem`, `Other`
+  - `neighborhood`: 50 neighborhoods of Seattle
+  - `severity`: 1-5 scale (guaranteed to be present in the cleaned dataset)
+  - `is_temporary`: boolean (~771 are TRUE, rest FALSE)
 
 ## What's Been Built
 
