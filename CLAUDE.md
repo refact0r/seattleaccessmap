@@ -8,7 +8,7 @@ Hackathon prompt: `reference/access-to-everyday-life.md`. We're deviating a litt
 
 ## Dataset
 
-- Location: 'data/data_clean.csv' ('data/data.csv' is the raw dataset)
+- Location: `data/data_clean.csv` (`data/data.csv` is the raw dataset)
 - Records: 79,722 (dropped 2,251 rows with missing severity ratings)
 - Columns:
   - `lon`, `lat` - coordinates
