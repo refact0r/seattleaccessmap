@@ -14,9 +14,7 @@ from pathlib import Path
 import json
 
 # ── Config ──────────────────────────────────────────────────────────────────
-DATA_PATH = (
-    Path(__file__).parent.parent / "data" / "Access_to_Everyday_Life_Dataset.csv"
-)
+DATA_PATH = Path(__file__).parent / "data" / "data.csv"
 OUT_DIR = Path(__file__).parent / "output"
 OUT_DIR.mkdir(exist_ok=True)
 
