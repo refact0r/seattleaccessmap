@@ -5,6 +5,7 @@ HDBSCAN clustering analysis for accessibility barriers.
 import numpy as np
 import pandas as pd
 import hdbscan
+from scipy.spatial import ConvexHull
 
 
 def spatial_spread_meters(group):
@@ -43,10 +44,10 @@ def generate_clusters(barriers_df, min_severity=3):
     coords = np.radians(df_severe[["lat", "lon"]].values)
 
     clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=12,
-        min_samples=8,
+        min_cluster_size=15,
+        min_samples=10,
         metric="haversine",
-        cluster_selection_method="leaf",
+        cluster_selection_method="eom",
     )
     df_severe["cluster"] = clusterer.fit_predict(coords)
 
@@ -100,6 +101,19 @@ def generate_clusters(barriers_df, min_severity=3):
             for _, row in cluster_pts.iterrows()
         ]
 
+        # Compute convex hull for cluster boundary
+        hull = None
+        unique_coords = cluster_pts[["lat", "lon"]].drop_duplicates().values
+        if len(unique_coords) >= 3:
+            try:
+                ch = ConvexHull(unique_coords)
+                hull = [
+                    {"lat": float(unique_coords[i, 0]), "lng": float(unique_coords[i, 1])}
+                    for i in ch.vertices
+                ]
+            except Exception:
+                pass  # degenerate geometry (e.g. collinear points)
+
         # Build type breakdown
         type_cols = [c for c in crow.index if c.startswith("n_")]
         type_breakdown = {}
@@ -125,6 +139,7 @@ def generate_clusters(barriers_df, min_severity=3):
                 "lng_center": float(crow["lng_center"]),
                 "type_breakdown": type_breakdown,
                 "points": points,
+                "hull": hull,
             }
         )
 

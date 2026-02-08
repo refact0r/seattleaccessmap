@@ -53,6 +53,21 @@ export function initClusters({
 						</div>
 					</div>`
 
+				if (cluster.hull && cluster.hull.length >= 3) {
+					const hullLatLngs = cluster.hull.map((pt) => [pt.lat, pt.lng])
+					const polygon = L.polygon(hullLatLngs, {
+						color: clusterColor,
+						fillColor: clusterColor,
+						fillOpacity: 0.15,
+						weight: 2,
+						opacity: 0.6,
+						interactive: interactivityEnabled,
+					})
+						.bindPopup(popupContent)
+						.addTo(clustersLayer)
+					clusterMarkers.push(polygon)
+				}
+
 				cluster.points.forEach((pt) => {
 					const marker = L.circleMarker([pt.lat, pt.lng], {
 						radius: 2,
