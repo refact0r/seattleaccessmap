@@ -56,14 +56,17 @@ class AccessibilityRouter:
                     self.G_proj, start_node, end_node, weight='length'
                 )
             else:
-                # Non-linear (quadratic) penalty: cost² makes low bw avoid
-                # only the worst edges, high bw avoids all barrier edges.
-                # Linear penalty (bw * cost) only has a single crossover
-                # point between any two paths, producing binary behavior.
-                def edge_weight(_u, _v, data):
-                    length = data.get('length', 0)
-                    cost = data.get('accessibility_cost', 0)
-                    return length + barrier_weight * cost * cost
+                # On a MultiDiGraph, the weight function receives the dict
+                # of parallel edges {key: attr_dict}, not a single edge's
+                # attributes. We return the min weight across parallel edges.
+                def edge_weight(_u, _v, edge_dict):
+                    min_w = float('inf')
+                    for key, data in edge_dict.items():
+                        length = data.get('length', 0)
+                        cost = data.get('accessibility_cost', 0)
+                        w = length + barrier_weight * cost * cost
+                        min_w = min(min_w, w)
+                    return min_w
 
                 route_accessible = nx.shortest_path(
                     self.G_proj, start_node, end_node, weight=edge_weight
@@ -78,7 +81,8 @@ class AccessibilityRouter:
         except nx.NetworkXNoPath:
             raise ValueError("No path found between the specified points")
 
-        # Build weight functions for correct multigraph edge selection
+        # Weight functions for stats — these operate on individual edge data dicts
+        # (not the multigraph edge dict), used by _calculate_route_stats
         def acc_weight(_u, _v, data):
             l = data.get('length', 0)
             c = data.get('accessibility_cost', 0)

@@ -126,8 +126,11 @@ def test_route_divergence(router):
             if bw < 0.01:
                 route = nx.shortest_path(router.G_proj, start_node, end_node, weight='length')
             else:
-                def edge_weight(_u, _v, data, _bw=bw):
-                    return data.get('length', 0) + _bw * data.get('accessibility_cost', 0) ** 2
+                def edge_weight(_u, _v, edge_dict, _bw=bw):
+                    return min(
+                        d.get('length', 0) + _bw * d.get('accessibility_cost', 0) ** 2
+                        for d in edge_dict.values()
+                    )
                 route = nx.shortest_path(router.G_proj, start_node, end_node, weight=edge_weight)
 
             length, cost = route_stats(router.G_proj, route, bw)
