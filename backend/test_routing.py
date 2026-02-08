@@ -35,8 +35,8 @@ def load_router():
 
 
 TEST_ROUTES = [
-    (47.6062, -122.3321, 47.6205, -122.3493, "Pioneer Sq -> Pike Place (example 1)"),
-    (47.6553, -122.3035, 47.6205, -122.3212, "UW -> Capitol Hill (example 2)"),
+    (47.6551, -122.3046, 47.6305, -122.3566, "UW -> Queen Anne (example 1)"),
+    (47.6552, -122.3045, 47.6205, -122.3212, "UW -> Capitol Hill (example 2)"),
     (47.6155, -122.3210, 47.6095, -122.3270, "Capitol Hill -> First Hill"),
     (47.6090, -122.3370, 47.6015, -122.3340, "Downtown -> Pioneer Square"),
 ]

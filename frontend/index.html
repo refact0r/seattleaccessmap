@@ -254,12 +254,12 @@
 			}
 
 			.click-mode-btn.origin.active {
-				background: #e74c3c;
+				background: #27ae60;
 				border-color: #c0392b;
 			}
 
 			.click-mode-btn.destination.active {
-				background: #27ae60;
+				background: #e74c3c;
 				border-color: #229954;
 			}
 
@@ -428,7 +428,7 @@
 			<div id="status-message"></div>
 			<div class="examples">
 				<p><strong>Examples:</strong></p>
-				<p><a onclick="setExample1()">Pioneer Sq → Pike Place</a></p>
+				<p><a onclick="setExample1()">UW → Queen Anne</a></p>
 				<p><a onclick="setExample2()">UW → Capitol Hill</a></p>
 			</div>
 		</div>
@@ -736,7 +736,7 @@
 					originMarker = L.marker([e.latlng.lat, e.latlng.lng], {
 						icon: L.divIcon({
 							className: 'custom-marker',
-							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
 							iconAnchor: [10, 10],
 						}),
@@ -761,7 +761,7 @@
 					destinationMarker = L.marker([e.latlng.lat, e.latlng.lng], {
 						icon: L.divIcon({
 							className: 'custom-marker',
-							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
 							iconAnchor: [10, 10],
 						}),
@@ -780,16 +780,16 @@
 
 			// Example location presets
 			function setExample1() {
-				document.getElementById('start-lat').value = 47.6062
-				document.getElementById('start-lng').value = -122.3321
-				document.getElementById('end-lat').value = 47.6205
-				document.getElementById('end-lng').value = -122.3493
+				document.getElementById('start-lat').value = 47.6551
+				document.getElementById('start-lng').value = -122.3046
+				document.getElementById('end-lat').value = 47.6305
+				document.getElementById('end-lng').value = -122.3566
 				updateMarkers()
 			}
 
 			function setExample2() {
-				document.getElementById('start-lat').value = 47.6553
-				document.getElementById('start-lng').value = -122.3035
+				document.getElementById('start-lat').value = 47.6552
+				document.getElementById('start-lng').value = -122.3045
 				document.getElementById('end-lat').value = 47.6205
 				document.getElementById('end-lng').value = -122.3212
 				updateMarkers()
@@ -814,7 +814,7 @@
 					originMarker = L.marker([startLat, startLng], {
 						icon: L.divIcon({
 							className: 'custom-marker',
-							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
 							iconAnchor: [10, 10],
 						}),
@@ -826,7 +826,7 @@
 					destinationMarker = L.marker([endLat, endLng], {
 						icon: L.divIcon({
 							className: 'custom-marker',
-							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
 							iconAnchor: [10, 10],
 						}),
@@ -911,7 +911,7 @@
 								{
 									icon: L.divIcon({
 										className: 'custom-marker',
-										html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+										html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 										iconSize: [20, 20],
 										iconAnchor: [10, 10],
 									}),
@@ -929,7 +929,7 @@
 								{
 									icon: L.divIcon({
 										className: 'custom-marker',
-										html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+										html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 										iconSize: [20, 20],
 										iconAnchor: [10, 10],
 									}),
