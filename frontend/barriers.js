@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './config.js'
+
 export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 	let allBarriers = []
 	let allBarrierMarkers = []
@@ -135,7 +137,7 @@ export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 		.getElementById('hide-temp')
 		.addEventListener('change', scheduleApplyFilters)
 
-	fetch('http://localhost:5001/api/barriers')
+	fetch(`${API_BASE_URL}/api/barriers`)
 		.then((r) => r.json())
 		.then((barriers) => {
 			allBarriers = barriers

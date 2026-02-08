@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './config.js'
+
 export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 	let clickMode = null
 	let originMarker = null
@@ -226,7 +228,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 				const barrierWeight = (100 - tolerance) / 5
 
 				const response = await fetch(
-					'http://localhost:5001/api/calculate_route',
+					`${API_BASE_URL}/api/calculate_route`,
 					{
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
@@ -327,7 +329,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 			} catch (error) {
 				console.error('Error calculating route:', error)
 				showStatus(
-					'Error: Make sure backend is running (python3 backend/app.py)',
+					`Error: Make sure backend is running (${API_BASE_URL})`,
 					'error',
 				)
 			} finally {
@@ -367,32 +369,32 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 			(stats.accessible_barrier_count || 0)
 
 		routeContent.innerHTML = `
-			<div class="route-stats-row">
-				<div class="route-stats">
-					<h4>
-						<div class="color-dot route-dot-accessible"></div>
-						Accessible
-					</h4>
-					<p>Distance: ${stats.accessible_length.toFixed(0)} m</p>
-					<p>Barrier cost: ${stats.accessible_barrier_cost.toFixed(1)}</p>
-					<p>Barriers: ${stats.accessible_barrier_count || 0}</p>
-				</div>
-				<div class="route-stats">
-					<h4>
-						<div class="color-dot route-dot-standard"></div>
-						Standard
-					</h4>
-					<p>Distance: ${stats.standard_length.toFixed(0)} m</p>
-					<p>Barrier cost: ${stats.standard_barrier_cost.toFixed(1)}</p>
-					<p>Barriers: ${stats.standard_barrier_count || 0}</p>
-				</div>
-			</div>
-			<div class="comparison">
-				<h4>Trade-off Analysis</h4>
-				<p>Extra distance: ${extraDistance.toFixed(0)} m (${extraPercent > 0 ? '+' : ''}${extraPercent}%)</p>
-				<p>Barrier reduction: ${barrierReduction}%</p>
-				<p>Barriers avoided: ${barrierCountDiff}</p>
-			</div>`
+            <div class="route-stats-row">
+                <div class="route-stats">
+                    <h4>
+                        <div class="color-dot route-dot-accessible"></div>
+                        Accessible
+                    </h4>
+                    <p>Distance: ${stats.accessible_length.toFixed(0)} m</p>
+                    <p>Barrier cost: ${stats.accessible_barrier_cost.toFixed(1)}</p>
+                    <p>Barriers: ${stats.accessible_barrier_count || 0}</p>
+                </div>
+                <div class="route-stats">
+                    <h4>
+                        <div class="color-dot route-dot-standard"></div>
+                        Standard
+                    </h4>
+                    <p>Distance: ${stats.standard_length.toFixed(0)} m</p>
+                    <p>Barrier cost: ${stats.standard_barrier_cost.toFixed(1)}</p>
+                    <p>Barriers: ${stats.standard_barrier_count || 0}</p>
+                </div>
+            </div>
+            <div class="comparison">
+                <h4>Trade-off Analysis</h4>
+                <p>Extra distance: ${extraDistance.toFixed(0)} m (${extraPercent > 0 ? '+' : ''}${extraPercent}%)</p>
+                <p>Barrier reduction: ${barrierReduction}%</p>
+                <p>Barriers avoided: ${barrierCountDiff}</p>
+            </div>`
 
 		resultsDiv.classList.remove('is-hidden')
 	}

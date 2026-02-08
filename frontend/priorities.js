@@ -1,3 +1,4 @@
+import { API_BASE_URL } from './config.js'
 import { cssVar } from './theme.js'
 
 export function initPriorities({
@@ -90,7 +91,7 @@ export function initPriorities({
 		return `rgb(${r},${g},${b})`
 	}
 
-	fetch('http://localhost:5001/api/fix_priorities')
+	fetch(`${API_BASE_URL}/api/fix_priorities`)
 		.then((r) => r.json())
 		.then((data) => {
 			if (data.error) {
@@ -168,7 +169,6 @@ export function initPriorities({
 					listEl.appendChild(item)
 				}
 			})
-
 		})
 		.catch((err) => {
 			console.error('Error loading fix priorities:', err)

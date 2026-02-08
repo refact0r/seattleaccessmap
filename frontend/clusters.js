@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './config.js'
+
 export function initClusters({
 	map,
 	renderer,
@@ -12,7 +14,7 @@ export function initClusters({
 	const DEFAULT_MAP_CENTER = [47.6062, -122.3321]
 	const DEFAULT_MAP_ZOOM = 13
 
-	fetch('http://localhost:5001/api/clusters')
+	fetch(`${API_BASE_URL}/api/clusters`)
 		.then((r) => r.json())
 		.then((data) => {
 			const { config, clusters, heatmap_data } = data
@@ -55,7 +57,10 @@ export function initClusters({
 					</div>`
 
 				if (cluster.hull && cluster.hull.length >= 3) {
-					const hullLatLngs = cluster.hull.map((pt) => [pt.lat, pt.lng])
+					const hullLatLngs = cluster.hull.map((pt) => [
+						pt.lat,
+						pt.lng,
+					])
 					const polygon = L.polygon(hullLatLngs, {
 						color: clusterColor,
 						fillColor: clusterColor,
@@ -85,7 +90,6 @@ export function initClusters({
 					clusterMarkers.push(marker)
 				})
 			})
-
 		})
 		.catch((err) => {
 			console.error('Error loading clusters:', err)

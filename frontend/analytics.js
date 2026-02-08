@@ -1,3 +1,5 @@
+import { API_BASE_URL } from './config.js'
+
 export function initAnalytics({ severityColor, cssVar, themeColors }) {
 	let analyticsLoaded = false
 
@@ -180,7 +182,7 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 		const container = document.getElementById('analytics-container')
 
 		try {
-			const response = await fetch('http://localhost:5001/api/analytics')
+			const response = await fetch(`${API_BASE_URL}/api/analytics`)
 			if (!response.ok) throw new Error('Failed to load analytics')
 			const data = await response.json()
 
