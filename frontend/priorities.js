@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config.js'
+import { apiFetch } from './config.js'
 import { cssVar } from './theme.js'
 
 export function initPriorities({
@@ -91,7 +91,7 @@ export function initPriorities({
 		return `rgb(${r},${g},${b})`
 	}
 
-	fetch(`${API_BASE_URL}/api/fix_priorities`)
+	apiFetch('/api/fix_priorities')
 		.then((r) => r.json())
 		.then((data) => {
 			if (data.error) {

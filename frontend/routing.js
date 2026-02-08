@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config.js'
+import { apiFetch } from './config.js'
 
 export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 	let clickMode = null
@@ -227,20 +227,17 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 				const tolerance = parseInt(toleranceSlider.value)
 				const barrierWeight = (100 - tolerance) / 5
 
-				const response = await fetch(
-					`${API_BASE_URL}/api/calculate_route`,
-					{
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							start_lat: startLat,
-							start_lng: startLng,
-							end_lat: endLat,
-							end_lng: endLng,
-							barrier_weight: barrierWeight,
-						}),
-					},
-				)
+				const response = await apiFetch('/api/calculate_route', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						start_lat: startLat,
+						start_lng: startLng,
+						end_lat: endLat,
+						end_lng: endLng,
+						barrier_weight: barrierWeight,
+					}),
+				})
 
 				if (!response.ok)
 					throw new Error(`Server error: ${response.statusText}`)
@@ -328,10 +325,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 				showStatus('Routes calculated!', 'success')
 			} catch (error) {
 				console.error('Error calculating route:', error)
-				showStatus(
-					`Error: Make sure backend is running (${API_BASE_URL})`,
-					'error',
-				)
+				showStatus('Error: Make sure backend is reachable', 'error')
 			} finally {
 				btn.disabled = false
 				btn.textContent = 'Calculate Route'

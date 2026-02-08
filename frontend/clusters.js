@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config.js'
+import { apiFetch } from './config.js'
 
 export function initClusters({
 	map,
@@ -14,7 +14,7 @@ export function initClusters({
 	const DEFAULT_MAP_CENTER = [47.6062, -122.3321]
 	const DEFAULT_MAP_ZOOM = 13
 
-	fetch(`${API_BASE_URL}/api/clusters`)
+	apiFetch('/api/clusters')
 		.then((r) => r.json())
 		.then((data) => {
 			const { config, clusters, heatmap_data } = data
