@@ -29,7 +29,9 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 				datasets: [
 					{
 						data: data.type_counts.values,
-						backgroundColor: paletteFor(data.type_counts.labels.length),
+						backgroundColor: paletteFor(
+							data.type_counts.labels.length,
+						),
 						borderRadius: 4,
 					},
 				],
@@ -51,7 +53,9 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 				datasets: [
 					{
 						data: data.type_severity.values,
-						backgroundColor: paletteFor(data.type_severity.labels.length),
+						backgroundColor: paletteFor(
+							data.type_severity.labels.length,
+						),
 						borderRadius: 4,
 					},
 				],
@@ -60,7 +64,7 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 				...defaultOpts,
 				indexAxis: 'y',
 				scales: {
-					x: { grid: { display: false }, max: 10 },
+					x: { grid: { display: false }, max: 5 },
 					y: { grid: { display: false } },
 				},
 			},
@@ -158,7 +162,8 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 			types.forEach((_, j) => {
 				const val = matrix[i][j]
 				if (val === null) {
-					html += '<td class="severity-cell severity-cell--empty">-</td>'
+					html +=
+						'<td class="severity-cell severity-cell--empty">-</td>'
 				} else {
 					const color = severityColor(val)
 					html += `<td class="severity-cell" style="background:${color};" title="${n}: ${val.toFixed(1)}">${val.toFixed(1)}</td>`
@@ -182,30 +187,38 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 			analyticsLoaded = true
 
 			container.innerHTML = `
-				<div class="chart-card">
-					<h4>Barrier Count by Type</h4>
-					<canvas id="chart-type-count"></canvas>
-				</div>
-				<div class="chart-card">
-					<h4>Mean Severity by Type</h4>
-					<canvas id="chart-type-severity"></canvas>
-				</div>
-				<div class="chart-card">
-					<h4>Severity Distribution</h4>
-					<canvas id="chart-severity-dist"></canvas>
-				</div>
-				<div class="chart-card">
-					<h4>Top 10 Neighborhoods by Barrier Count</h4>
-					<canvas id="chart-top-neighborhoods"></canvas>
-				</div>
-				<div class="chart-card">
-					<h4>Bottom 10 Neighborhoods by Barrier Count</h4>
-					<canvas id="chart-bottom-neighborhoods"></canvas>
-				</div>
-				<div class="chart-card">
-					<h4>Neighborhood × Type Severity</h4>
-					<div class="table-scroll">
-						<table class="severity-table" id="severity-heatmap-table"></table>
+				<div class="chart-grid">
+					<div class="chart-card">
+						<h4>Barrier Count by Type</h4>
+						<canvas id="chart-type-count"></canvas>
+						<p class="chart-caption">CurbRamp observations dominate the dataset since they mark existing ramps at every corner. NoSidewalk and Obstacle reports are rarer.</p>
+					</div>
+					<div class="chart-card">
+						<h4>Mean Raw Severity by Type (1-5)</h4>
+						<canvas id="chart-type-severity"></canvas>
+						<p class="chart-caption">Raw severity (1-5) as labeled by Project Sidewalk. NoSidewalk and NoCurbRamp tend to score highest. Note that these values don't account for differences between barrier types. See the adjusted severity metric on the About page.</p>
+					</div>
+					<div class="chart-card chart-card--wide">
+						<h4>Adjusted Severity Distribution</h4>
+						<canvas id="chart-severity-dist"></canvas>
+						<p class="chart-caption">Most barriers fall in the low-to-moderate severity range. The peak at the low end is mostly driven by CurbRamp observations, which represent existing ramps.</p>
+					</div>
+					<div class="chart-card">
+						<h4>Top 10 Neighborhoods by Barrier Count</h4>
+						<canvas id="chart-top-neighborhoods"></canvas>
+						<p class="chart-caption">High barrier counts likely reflect poor accessibility in these neighborhoods.</p>
+					</div>
+					<div class="chart-card">
+						<h4>Bottom 10 Neighborhoods by Barrier Count</h4>
+						<canvas id="chart-bottom-neighborhoods"></canvas>
+						<p class="chart-caption">Low counts could indicate good sidewalk conditions or limited survey coverage.</p>
+					</div>
+					<div class="chart-card chart-card--wide">
+						<h4>Neighborhood × Type Severity Heatmap</h4>
+						<div class="table-scroll">
+							<table class="severity-table" id="severity-heatmap-table"></table>
+						</div>
+						<p class="chart-caption">Mean adjusted severity by neighborhood and barrier type. Different neighborhoods have different severity profiles across barrier categories.</p>
 					</div>
 				</div>`
 

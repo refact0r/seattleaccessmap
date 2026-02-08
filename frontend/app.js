@@ -47,12 +47,6 @@ const routing = initRouting({
 
 const analytics = initAnalytics({ severityColor, cssVar, themeColors })
 
-initViewTabs({
-	map,
-	onAnalyticsOpen: analytics.loadAnalyticsIfNeeded,
-	onRouteLeave: routing.resetClickMode,
-})
-
 // Layer toggles
 
 const legendSeverity = document.getElementById('legend-severity')
@@ -110,6 +104,36 @@ togglePriorities.addEventListener('change', () => {
 	})
 })
 
+function setToggleChecked(toggleEl, checked) {
+	if (toggleEl.checked === checked) return
+	toggleEl.checked = checked
+	toggleEl.dispatchEvent(new Event('change'))
+}
+
+function applyExplorePreset(preset) {
+	if (preset === 'barriers') {
+		setToggleChecked(toggleBarriers, true)
+		setToggleChecked(toggleHeatmap, false)
+		setToggleChecked(toggleClusters, false)
+		setToggleChecked(togglePriorities, false)
+		return
+	}
+	if (preset === 'clusters') {
+		setToggleChecked(toggleBarriers, false)
+		setToggleChecked(toggleHeatmap, false)
+		setToggleChecked(toggleClusters, true)
+		setToggleChecked(togglePriorities, false)
+		return
+	}
+	if (preset === 'priorities') {
+		setToggleChecked(toggleBarriers, false)
+		setToggleChecked(toggleHeatmap, false)
+		setToggleChecked(toggleClusters, false)
+		setToggleChecked(togglePriorities, true)
+		return
+	}
+}
+
 setPrioritiesVisible = (visible) => {
 	if (togglePriorities.checked === visible) {
 		updateLegendVisibility()
@@ -120,3 +144,10 @@ setPrioritiesVisible = (visible) => {
 }
 
 updateLegendVisibility()
+
+initViewTabs({
+	map,
+	onAnalyticsOpen: analytics.loadAnalyticsIfNeeded,
+	onRouteLeave: routing.resetClickMode,
+	onExplorePreset: applyExplorePreset,
+})
