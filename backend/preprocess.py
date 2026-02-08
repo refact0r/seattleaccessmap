@@ -40,8 +40,16 @@ def main():
     barriers_df = barriers_df[barriers_df['severity'].notna()].copy()
     print(f"   Loaded {len(barriers_df):,} barriers with severity ratings")
 
+    # Generate clusters (fast, only depends on barrier data)
+    print("\n2. Generating HDBSCAN clusters...")
+    clusters_data = generate_clusters(barriers_df, min_severity=3)
+    with open(DATA_DIR / 'clusters.pkl', 'wb') as f:
+        pickle.dump(clusters_data, f)
+    print(f"   ✓ Generated {len(clusters_data['clusters'])} clusters")
+    print(f"   ✓ Saved clusters to {DATA_DIR / 'clusters.pkl'}")
+
     # Build spatial index
-    print("\n2. Building spatial index for barriers...")
+    print("\n3. Building spatial index for barriers...")
     barrier_coords = barriers_df[['lat', 'lon']].values
     barrier_tree = cKDTree(barrier_coords)
     print(f"   Built spatial index with {len(barrier_coords):,} points")
@@ -51,17 +59,17 @@ def main():
     raw_graph_proj_path = DATA_DIR / 'network_raw_proj.pkl'
 
     if raw_graph_path.exists() and raw_graph_proj_path.exists():
-        print("\n3. Loading cached pedestrian network from disk...")
+        print("\n4. Loading cached pedestrian network from disk...")
         with open(raw_graph_path, 'rb') as f:
             G = pickle.load(f)
         print(f"   Loaded network: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
 
-        print("\n4. Loading cached projected graph from disk...")
+        print("\n5. Loading cached projected graph from disk...")
         with open(raw_graph_proj_path, 'rb') as f:
             G_proj = pickle.load(f)
         print("   Loaded projected graph")
     else:
-        print("\n3. Fetching Seattle pedestrian network from OpenStreetMap...")
+        print("\n4. Fetching Seattle pedestrian network from OpenStreetMap...")
         print("   (This will be cached locally for future runs)")
         G = ox.graph_from_place(
             "Seattle, Washington, USA",
@@ -70,7 +78,7 @@ def main():
         )
         print(f"   Loaded network: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
 
-        print("\n4. Projecting graph to UTM...")
+        print("\n5. Projecting graph to UTM...")
         G_proj = ox.project_graph(G)
         print("   Graph projected")
 
@@ -87,13 +95,13 @@ def main():
     G_proj = deepcopy(G_proj)
 
     # Calculate edge accessibility costs
-    print("\n5. Calculating accessibility costs for all edges...")
+    print("\n6. Calculating accessibility costs for all edges...")
     AccessibilityRouter.calculate_edge_costs(
         G, G_proj, barriers_df, barrier_tree, CONFIG
     )
 
     # Save preprocessed data
-    print("\n6. Saving preprocessed data...")
+    print("\n7. Saving preprocessed data...")
 
     # Save graphs
     with open(DATA_DIR / 'graph.pkl', 'wb') as f:
@@ -117,14 +125,6 @@ def main():
     with open(DATA_DIR / 'config.pkl', 'wb') as f:
         pickle.dump(CONFIG, f)
     print(f"   ✓ Saved config to {DATA_DIR / 'config.pkl'}")
-
-    # Generate and save clusters
-    print("\n7. Generating HDBSCAN clusters...")
-    clusters_data = generate_clusters(barriers_df, min_severity=3)
-    with open(DATA_DIR / 'clusters.pkl', 'wb') as f:
-        pickle.dump(clusters_data, f)
-    print(f"   ✓ Generated {len(clusters_data['clusters'])} clusters")
-    print(f"   ✓ Saved clusters to {DATA_DIR / 'clusters.pkl'}")
 
     print("\n" + "=" * 60)
     print("PREPROCESSING COMPLETE!")
