@@ -1,28 +1,10 @@
-"""
-Accessibility-aware routing algorithms.
-
-Operates on preprocessed network and barrier data structures.
-"""
-
 import networkx as nx
 import osmnx as ox
 import json
 
 
 class AccessibilityRouter:
-    """Calculates accessibility-aware routes on Seattle pedestrian network."""
-
     def __init__(self, graph, graph_proj, barriers_df, barrier_tree, config):
-        """
-        Initialize router with preprocessed data.
-
-        Args:
-            graph: OSMnx graph (unprojected, WGS84)
-            graph_proj: OSMnx graph (projected to UTM)
-            barriers_df: DataFrame with barrier data
-            barrier_tree: cKDTree spatial index for barriers
-            config: Dict with routing configuration
-        """
         self.G = graph
         self.G_proj = graph_proj
         self.barriers = barriers_df
@@ -32,20 +14,6 @@ class AccessibilityRouter:
     def calculate_route(
         self, start_lat, start_lng, end_lat, end_lng, barrier_weight=1.0
     ):
-        """
-        Calculate both accessible and standard routes.
-
-        Args:
-            start_lat, start_lng: Origin coordinates
-            end_lat, end_lng: Destination coordinates
-            barrier_weight: How much to penalize barriers (0 = ignore, 50 = max avoid)
-
-        Returns:
-            dict with 'accessible_route', 'standard_route', and 'stats'
-
-        Raises:
-            ValueError: If no path exists between points
-        """
         start_node = ox.distance.nearest_nodes(self.G, start_lng, start_lat)
         end_node = ox.distance.nearest_nodes(self.G, end_lng, end_lat)
 
@@ -58,9 +26,7 @@ class AccessibilityRouter:
                     self.G_proj, start_node, end_node, weight="length"
                 )
             else:
-                # On a MultiDiGraph, the weight function receives the dict
-                # of parallel edges {key: attr_dict}, not a single edge's
-                # attributes. We return the min weight across parallel edges.
+                # multidigraph edge dict contains parallel edges; choose min weight
                 def edge_weight(_u, _v, edge_dict):
                     min_w = float("inf")
                     for key, data in edge_dict.items():
@@ -80,8 +46,6 @@ class AccessibilityRouter:
         except nx.NetworkXNoPath:
             raise ValueError("No path found between the specified points")
 
-        # Weight functions for stats — these operate on individual edge data dicts
-        # (not the multigraph edge dict), used by _calculate_route_stats
         def acc_weight(_u, _v, data):
             l = data.get("length", 0)
             c = data.get("accessibility_cost", 0)
@@ -93,7 +57,6 @@ class AccessibilityRouter:
         accessible_stats = self._calculate_route_stats(route_accessible, acc_weight)
         standard_stats = self._calculate_route_stats(route_standard, std_weight)
 
-        # Convert to GeoJSON
         accessible_geojson = self._route_to_geojson(route_accessible)
         standard_geojson = self._route_to_geojson(route_standard)
 
@@ -113,11 +76,6 @@ class AccessibilityRouter:
         }
 
     def _calculate_route_stats(self, route, weight_fn):
-        """Calculate length, barrier cost, severity sum, and barrier count for a route.
-
-        Uses weight_fn to select the correct edge when parallel edges exist
-        (MultiDiGraph), matching the edge Dijkstra actually traversed.
-        """
         total_length = 0
         total_barrier_cost = 0
         total_barrier_count = 0
@@ -138,39 +96,21 @@ class AccessibilityRouter:
         }
 
     def _route_to_geojson(self, route):
-        """Convert route to GeoJSON format."""
         gdf = ox.routing.route_to_gdf(self.G, route)
         return json.loads(gdf.to_json())
 
     @staticmethod
     def calculate_edge_costs(graph, graph_proj, barriers_df, barrier_tree, config):
-        """
-        Pre-calculate accessibility costs for all edges.
-
-        Snaps each barrier point to its nearest edge and accumulates
-        severity costs. Every barrier in the dataset contributes to
-        exactly one edge.
-
-        Args:
-            graph: OSMnx graph (unprojected, WGS84)
-            graph_proj: OSMnx graph (projected to UTM)
-            barriers_df: DataFrame with barrier data
-            barrier_tree: cKDTree spatial index for barriers (unused)
-            config: Dict with routing configuration (unused)
-        """
         print(f"Snapping {len(barriers_df):,} barriers to nearest edges...")
 
-        # Find nearest edge for each barrier point
         nearest_edges = ox.distance.nearest_edges(
             graph, barriers_df["lon"].values, barriers_df["lat"].values
         )
 
-        # Initialize all edges with zero accessibility cost and barrier count
         for u, v, key, data in graph_proj.edges(keys=True, data=True):
             data["accessibility_cost"] = 0.0
             data["barrier_count"] = 0
 
-        # Accumulate barrier severity on nearest edges
         for i in range(len(nearest_edges)):
             u, v, key = (
                 int(nearest_edges[i][0]),
@@ -182,11 +122,9 @@ class AccessibilityRouter:
                 graph_proj[u][v][key]["accessibility_cost"] += severity
                 graph_proj[u][v][key]["barrier_count"] += 1
 
-        # Set total_cost
         for u, v, key, data in graph_proj.edges(keys=True, data=True):
             data["total_cost"] = data.get("length", 0) + data["accessibility_cost"]
 
-        # Report stats
         costs = [
             d["accessibility_cost"]
             for _, _, _, d in graph_proj.edges(keys=True, data=True)
