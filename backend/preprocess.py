@@ -3,7 +3,6 @@ import osmnx as ox
 import pandas as pd
 import pickle
 import numpy as np
-from copy import deepcopy
 from scipy.spatial import cKDTree
 import sys
 
@@ -59,9 +58,6 @@ def main():
             pickle.dump(G, f)
         with open(raw_graph_proj_path, "wb") as f:
             pickle.dump(G_proj, f)
-
-    G = deepcopy(G)
-    G_proj = deepcopy(G_proj)
 
     log("calculating edge costs")
     AccessibilityRouter.calculate_edge_costs(

@@ -68,13 +68,10 @@ def route_stats(G_proj, route, bw):
 
 def diagnose_edge_costs(G_proj):
     costs = []
-    lengths = []
     for u, v, data in G_proj.edges(data=True):
         costs.append(data.get("accessibility_cost", 0))
-        lengths.append(data.get("length", 0))
 
     costs = np.array(costs)
-    lengths = np.array(lengths)
     nonzero = costs > 0
     total = len(costs)
     n_nonzero = nonzero.sum()
@@ -97,11 +94,10 @@ def diagnose_edge_costs(G_proj):
 def test_route_divergence(router):
     all_have_gradient = True
 
-    for start_lat, start_lng, end_lat, end_lng, label in TEST_ROUTES:
+    for start_lat, start_lng, end_lat, end_lng, _label in TEST_ROUTES:
         start_node = ox.distance.nearest_nodes(router.G, start_lng, start_lat)
         end_node = ox.distance.nearest_nodes(router.G, end_lng, end_lat)
 
-        routes = {}
         prev_route = None
         distinct_routes = 0
 
@@ -128,8 +124,6 @@ def test_route_divergence(router):
 
             if prev_route is None or route != prev_route:
                 distinct_routes += 1
-            shortest = routes.get(100, {}).get("route")
-            routes[tolerance] = {"route": route, "length": length, "cost": cost}
             prev_route = route
 
         if distinct_routes <= 2:
