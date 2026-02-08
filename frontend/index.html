@@ -466,11 +466,19 @@
 			// Layer groups
 			const layers = {}
 			let heatmapLayer = null
-			let clustersLayer = L.layerGroup().addTo(map)
-			let barriersLayer = L.layerGroup()
+			let clustersLayer = L.layerGroup()
+			let barriersLayer = L.layerGroup().addTo(map)
+			layers['Severity Heatmap'] = L.layerGroup()
+			layers['Accessibility Clusters'] = clustersLayer
+			layers['Barrier Points'] = barriersLayer
 			let accessibleRouteLayer = null
 			let standardRouteLayer = null
-			let layerControl = null
+			let layerControl = L.control
+				.layers(null, layers, {
+					collapsed: false,
+					position: 'bottomright',
+				})
+				.addTo(map)
 
 			// Gradient color for adjusted severity (0-10 scale)
 			// green (0) → yellow (3.3) → orange (5) → red (7.5) → dark red (10)
@@ -515,18 +523,7 @@
 							)
 							.addTo(barriersLayer)
 					})
-					layers['Barrier Points'] = barriersLayer
 					console.log(`Loaded ${barriers.length} barrier points`)
-					// Rebuild layer control if it exists
-					if (layerControl) {
-						layerControl.remove()
-						layerControl = L.control
-							.layers(null, layers, {
-								collapsed: false,
-								position: 'bottomright',
-							})
-							.addTo(map)
-					}
 				})
 				.catch((err) => console.error('Error loading barriers:', err))
 
@@ -557,8 +554,8 @@
 								1.0: 'red',
 							},
 						},
-					).addTo(map)
-					layers['Severity Heatmap'] = heatmapLayer
+					)
+					layers['Severity Heatmap'].addLayer(heatmapLayer)
 
 					// Add all clusters to a single layer group
 					clusters.forEach((cluster) => {
@@ -597,15 +594,6 @@
 							marker.addTo(clustersLayer)
 						})
 					})
-					layers['Accessibility Clusters'] = clustersLayer
-
-					// Add layer control in bottom-right
-					layerControl = L.control
-						.layers(null, layers, {
-							collapsed: false,
-							position: 'bottomright',
-						})
-						.addTo(map)
 
 					console.log(
 						`Loaded ${clusters.length} clusters with ${heatmap_data.length} severity points`,

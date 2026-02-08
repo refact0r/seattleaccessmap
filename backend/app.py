@@ -18,14 +18,15 @@ from algorithms.routing import AccessibilityRouter
 app = Flask(__name__)
 CORS(app)  # Enable CORS for browser requests
 
-# Global router instance and cluster data
+# Global router instance and cached data
 router = None
 clusters_data = None
+barriers_cache = None
 
 
 def load_preprocessed_data():
     """Load preprocessed data structures from disk."""
-    global router, clusters_data
+    global router, clusters_data, barriers_cache
 
     data_dir = Path(__file__).parent / 'data_processed'
 
@@ -58,6 +59,15 @@ def load_preprocessed_data():
         print(f"✓ Loaded network: {len(graph.nodes):,} nodes, {len(graph.edges):,} edges")
         print(f"✓ Loaded {len(barriers_df):,} barriers")
         print(f"✓ Loaded {len(clusters_data['clusters'])} clusters")
+
+        # Precompute barriers JSON (avoids slow iterrows at request time)
+        df = barriers_df[['lat', 'lon', 'severity', 'adjusted_severity', 'label']].copy()
+        df = df.rename(columns={'lon': 'lng'})
+        df['adjusted_severity'] = df['adjusted_severity'].round(1)
+        df['severity'] = df['severity'].astype(int)
+        barriers_cache = df.to_dict('records')
+        print(f"✓ Cached {len(barriers_cache):,} barriers for API")
+
         print("✓ Router initialized and ready!")
 
     except FileNotFoundError as e:
@@ -86,26 +96,10 @@ def get_barriers():
     Returns:
         JSON array of barriers with lat, lng, severity, label
     """
-    if router is None:
-        return jsonify({'error': 'Router not initialized'}), 500
+    if barriers_cache is None:
+        return jsonify({'error': 'Barrier data not loaded'}), 500
 
-    try:
-        # Convert barriers dataframe to JSON-friendly format
-        barriers_list = []
-        for _, row in router.barriers.iterrows():
-            barriers_list.append({
-                'lat': float(row['lat']),
-                'lng': float(row['lon']),
-                'severity': int(row['severity']),
-                'adjusted_severity': round(float(row['adjusted_severity']), 1),
-                'label': str(row['label'])
-            })
-
-        return jsonify(barriers_list)
-
-    except Exception as e:
-        print(f"Error getting barriers: {e}")
-        return jsonify({'error': str(e)}), 500
+    return jsonify(barriers_cache)
 
 
 @app.route('/api/clusters', methods=['GET'])
