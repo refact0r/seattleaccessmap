@@ -14,19 +14,18 @@ import sys
 # Add algorithms to path
 sys.path.append(str(Path(__file__).parent))
 from algorithms.routing import AccessibilityRouter
-from algorithms.clustering import generate_clusters
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for browser requests
 
-# Global router instance and cluster cache
+# Global router instance and cluster data
 router = None
-clusters_cache = None
+clusters_data = None
 
 
 def load_preprocessed_data():
     """Load preprocessed data structures from disk."""
-    global router
+    global router, clusters_data
 
     data_dir = Path(__file__).parent / 'data_processed'
 
@@ -48,6 +47,9 @@ def load_preprocessed_data():
         with open(data_dir / 'config.pkl', 'rb') as f:
             config = pickle.load(f)
 
+        with open(data_dir / 'clusters.pkl', 'rb') as f:
+            clusters_data = pickle.load(f)
+
         # Initialize router
         router = AccessibilityRouter(
             graph, graph_proj, barriers_df, barrier_tree, config
@@ -55,6 +57,7 @@ def load_preprocessed_data():
 
         print(f"✓ Loaded network: {len(graph.nodes):,} nodes, {len(graph.edges):,} edges")
         print(f"✓ Loaded {len(barriers_df):,} barriers")
+        print(f"✓ Loaded {len(clusters_data['clusters'])} clusters")
         print("✓ Router initialized and ready!")
 
     except FileNotFoundError as e:
@@ -112,25 +115,10 @@ def get_clusters():
     Returns:
         JSON with config, clusters (hotspot metadata), and heatmap_data
     """
-    global clusters_cache
+    if clusters_data is None:
+        return jsonify({'error': 'Cluster data not loaded'}), 500
 
-    if router is None:
-        return jsonify({'error': 'Router not initialized'}), 500
-
-    try:
-        # Generate clusters on first request and cache
-        if clusters_cache is None:
-            print("Generating HDBSCAN clusters (this may take a moment)...")
-            clusters_cache = generate_clusters(router.barriers, min_severity=3)
-            print(f"✓ Generated {len(clusters_cache['clusters'])} clusters")
-
-        return jsonify(clusters_cache)
-
-    except Exception as e:
-        print(f"Error generating clusters: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+    return jsonify(clusters_data)
 
 
 @app.route('/api/calculate_route', methods=['POST'])

@@ -16,6 +16,7 @@ import sys
 # Add algorithms to path
 sys.path.append(str(Path(__file__).parent))
 from algorithms.routing import AccessibilityRouter
+from algorithms.clustering import generate_clusters
 
 # Configuration
 CONFIG = {
@@ -116,6 +117,14 @@ def main():
     with open(DATA_DIR / 'config.pkl', 'wb') as f:
         pickle.dump(CONFIG, f)
     print(f"   ✓ Saved config to {DATA_DIR / 'config.pkl'}")
+
+    # Generate and save clusters
+    print("\n7. Generating HDBSCAN clusters...")
+    clusters_data = generate_clusters(barriers_df, min_severity=3)
+    with open(DATA_DIR / 'clusters.pkl', 'wb') as f:
+        pickle.dump(clusters_data, f)
+    print(f"   ✓ Generated {len(clusters_data['clusters'])} clusters")
+    print(f"   ✓ Saved clusters to {DATA_DIR / 'clusters.pkl'}")
 
     print("\n" + "=" * 60)
     print("PREPROCESSING COMPLETE!")
