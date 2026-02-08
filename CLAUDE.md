@@ -24,30 +24,81 @@ Hackathon prompt: `reference/access-to-everyday-life.md`. We're deviating a litt
 /
 ├── backend/                      # Python Flask API server
 │   ├── app.py                    # Server (loads preprocessed data at startup)
-│   ├── preprocess.py             # Build runtime data structures from CSV
-│   ├── requirements.txt
+│   ├── preprocess.py             # Builds network graph + edge costs from CSV
+│   ├── requirements.txt          # Flask, OSMnx, pandas, scipy, networkx
 │   ├── algorithms/
-│   │   └── routing.py            # Routing algorithms (operate on in-memory data)
+│   │   └── routing.py            # AccessibilityRouter class (Dijkstra with barrier costs)
 │   └── data_processed/           # Gitignored - preprocessed artifacts
+│       ├── graph.pkl             # OSMnx pedestrian network (WGS84)
+│       ├── graph_proj.pkl        # Projected graph (UTM) with edge costs
+│       ├── barriers.pkl          # Barrier DataFrame
+│       ├── barrier_tree.pkl      # cKDTree spatial index
+│       └── config.pkl            # Routing parameters
 ├── frontend/                     # Web app (plain HTML/JS + Leaflet)
-│   ├── index.html                # Main UI
-│   ├── app.js                    # Logic for fetching data and rendering map
-│   └── style.css
+│   └── index.html                # Main UI with routing input panel
 ├── data/
-│   ├── data.csv                  # Raw dataset
-│   └── data_clean.csv            # Cleaned dataset (from scripts/clean.py, used by backend)
+│   ├── data.csv                  # Raw dataset (~82k records)
+│   └── data_clean.csv            # Cleaned dataset (79,722 records with severity)
 ├── scripts/
 │   └── clean.py                  # Data cleaning
-├── reference/                    # Hackathon prompt and other reference files
-└── [prototype files]             # analysis.py, index.html, serve.sh, /output
+├── output/                       # Analysis visualizations (from analysis.py)
+│   ├── clusters_data.json        # HDBSCAN hotspot clusters (for map overlay)
+│   ├── heatmap_data.json         # Severity heatmap points (for map overlay)
+│   └── *.png                     # Static charts (EDA, clusters, etc.)
+├── reference/                    # Hackathon prompt
+├── archived/                     # Old prototype files (superseded by backend/)
+│   ├── accessibility_routing.py  # Monolithic routing script
+│   ├── routing_server.py         # Old Flask server
+│   └── index.html                # Old map interface
+├── analysis.py                   # Cluster analysis script (generates output/)
+└── serve.sh                      # Start local HTTP server
 ```
 
 ### Data Flow
 
-1. **Data cleaning** (one-time): `scripts/clean.py` → `data/data_clean.csv`
-2. **Backend preprocessing** (run on setup/changes): `backend/preprocess.py` → `backend/data_processed/*`
-3. **Runtime**: `backend/app.py` loads preprocessed data into memory, serves API
-4. **Frontend**: Fetches from API, displays on Leaflet map, handles user interactions
+**Phase 1: Data Preparation** (one-time)
+```bash
+scripts/clean.py  # data.csv → data_clean.csv
+python3 analysis.py  # → output/*.json, output/*.png (clusters, heatmaps)
+```
+
+**Phase 2: Backend Setup** (one-time)
+```bash
+cd backend
+python3 preprocess.py  # → data_processed/*.pkl (network graph + edge costs)
+```
+- Loads `data/data_clean.csv` + OSMnx Seattle walk network
+- Calculates accessibility cost for every edge (barrier proximity × severity)
+- Saves preprocessed routing structures to `data_processed/*.pkl` (~200MB)
+
+**Phase 3: Runtime**
+```bash
+# Terminal 1: Start routing API
+python3 backend/app.py  # Loads .pkl files, serves on :5001
+
+# Terminal 2: Start web server
+./serve.sh  # or: python3 -m http.server 8000
+```
+
+**Frontend Usage**:
+- Open `http://localhost:8000/frontend/index.html`
+- Map loads static cluster/heatmap overlays from `/output`
+- User enters origin/destination → calls `/api/calculate_route` → displays dynamic routes
+
+## Routing Algorithm
+
+**Core concept**: Modified Dijkstra's that minimizes `total_cost = edge_length + accessibility_penalty`
+
+**Edge cost calculation** (preprocessing):
+- For each edge midpoint, find barriers within 50m radius
+- For each nearby barrier: `penalty += severity × (1 - distance/50m)` (inverse distance weighting)
+- Store `total_cost = length + penalty` on every edge
+
+**Route types**:
+- **Accessible route**: Dijkstra with `weight='total_cost'` (minimizes barrier exposure)
+- **Standard route**: Dijkstra with `weight='length'` (shortest distance)
+
+**Output**: GeoJSON routes + stats (distance, barrier exposure, % tradeoff)
 
 ---
 

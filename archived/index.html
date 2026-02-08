@@ -297,8 +297,8 @@
 
 			// Load data and render
 			Promise.all([
-				fetch('../output/clusters_data.json').then((r) => r.json()),
-				fetch('../output/heatmap_data.json').then((r) => r.json()),
+				fetch('output/clusters_data.json').then((r) => r.json()),
+				fetch('output/heatmap_data.json').then((r) => r.json()),
 			])
 				.then(([clustersData, heatmapData]) => {
 					const { config, clusters } = clustersData
@@ -407,10 +407,10 @@
 			// Function to load and display routing data
 			function loadRoutingData() {
 				Promise.all([
-					fetch('../output/route_accessible.geojson').then((r) =>
+					fetch('output/route_accessible.geojson').then((r) =>
 						r.json(),
 					),
-					fetch('../output/route_standard.geojson').then((r) => r.json()),
+					fetch('output/route_standard.geojson').then((r) => r.json()),
 				])
 					.then(([accessibleRoute, standardRoute]) => {
 						// Calculate route statistics
@@ -563,7 +563,7 @@
 					try {
 						// Call backend API
 						const response = await fetch(
-							'http://localhost:5001/api/calculate_route',
+							'http://localhost:5001/calculate_route',
 							{
 								method: 'POST',
 								headers: {
@@ -642,7 +642,7 @@
 					} catch (error) {
 						console.error('Error calculating route:', error)
 						showStatus(
-							'Error: Make sure routing server is running (python3 backend/app.py)',
+							'Error: Make sure routing server is running (python3 routing_server.py)',
 							'error',
 						)
 					} finally {

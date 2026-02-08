@@ -22,3 +22,4 @@ ENV/
 # Processed data artifacts
 backend/data_processed/*.pkl
 backend/data_processed/*.json
+backend/cache/*.json

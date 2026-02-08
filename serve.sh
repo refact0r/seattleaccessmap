@@ -3,7 +3,9 @@
 # This avoids CORS issues when loading JSON files locally
 
 echo "Starting local server at http://localhost:8000"
-echo "Open http://localhost:8000/index.html in your browser"
+echo ""
+echo "Open: http://localhost:8000/frontend/index.html"
+echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 

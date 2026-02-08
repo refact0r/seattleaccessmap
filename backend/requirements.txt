@@ -2,3 +2,6 @@ flask
 flask-cors
 pandas
 numpy
+scipy
+osmnx
+networkx
