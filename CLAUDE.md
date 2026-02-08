@@ -75,21 +75,25 @@ Raw `severity` (1-5) is rescaled per label type to a 0-10 `adjusted_severity` vi
 ### Data Flow
 
 **Phase 1: Data Preparation** (one-time)
+
 ```bash
 scripts/clean.py  # data.csv → data_clean.csv
 python3 analysis.py  # → output/*.json, output/*.png (clusters, heatmaps)
 ```
 
 **Phase 2: Backend Setup** (one-time)
+
 ```bash
 cd backend
 python3 preprocess.py  # → data_processed/*.pkl (network graph + edge costs)
 ```
+
 - Loads `data/data_clean.csv` + OSMnx Seattle walk network
 - Snaps each barrier to its nearest edge using `ox.distance.nearest_edges` and accumulates severity
 - Saves preprocessed routing structures to `data_processed/*.pkl` (~200MB)
 
 **Phase 3: Runtime**
+
 ```bash
 # Terminal 1: Start routing API
 python3 backend/app.py  # Loads .pkl files, serves on :5001
@@ -99,6 +103,7 @@ python3 backend/app.py  # Loads .pkl files, serves on :5001
 ```
 
 **Frontend Usage**:
+
 - Open `http://localhost:8000/frontend/index.html`
 - Map loads cluster/heatmap overlays and individual barrier points from the backend API
 - User enters origin/destination, adjusts barrier tolerance slider → calls `/api/calculate_route` → displays accessible + standard routes
@@ -108,20 +113,24 @@ python3 backend/app.py  # Loads .pkl files, serves on :5001
 **Core concept**: Modified Dijkstra's with a user-adjustable `barrier_weight` parameter that controls how aggressively routes avoid barriers.
 
 **Edge cost calculation** (preprocessing):
+
 - Each barrier is snapped to its nearest graph edge via `ox.distance.nearest_edges`
 - Edge `accessibility_cost` = sum of `adjusted_severity` values for all barriers snapped to it
 
 **Runtime edge weight** (with barrier_weight `bw`):
+
 - `weight = length + bw × accessibility_cost²`
 - The quadratic penalty (`cost²`) produces a gradient of routes across the slider range — low `bw` avoids only the worst edges, high `bw` avoids all barrier edges. A linear penalty would produce binary (all-or-nothing) route switching.
 - When `bw < 0.01`, falls back to `weight = length` (pure shortest path).
 
 **Barrier tolerance slider** (frontend):
+
 - Slider range: 0 (avoid all barriers) → 100 (ignore barriers)
-- Maps to `barrier_weight = (100 - tolerance) / 10`, so tolerance 0 → bw=10, tolerance 100 → bw=0
+- Maps to `barrier_weight = (100 - tolerance) / 5`
 
 **Route types**:
-- **Accessible route**: Dijkstra with `weight = length + bw × cost²`
+
+- **Accessible route**: Dijkstra with `weight = length + bw × cost^(1.5)`
 - **Standard route**: Dijkstra with `weight = length` (shortest distance)
 
 **Output**: GeoJSON routes + stats (distance, barrier exposure, % tradeoff) + snapped start/end coordinates

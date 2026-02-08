@@ -476,11 +476,11 @@
 			// green (0) → yellow (3.3) → orange (5) → red (7.5) → dark red (10)
 			function severityColor(val) {
 				const stops = [
-					[0, [46, 204, 113]],   // #2ecc71 green
-					[3, [241, 196, 15]],   // #f1c40f yellow
-					[5, [230, 126, 34]],   // #e67e22 orange
-					[7, [231, 76, 60]],    // #e74c3c red
-					[10, [142, 68, 173]],  // #8e44ad purple
+					[0, [46, 204, 113]], // #2ecc71 green
+					[3, [241, 196, 15]], // #f1c40f yellow
+					[5, [230, 126, 34]], // #e67e22 orange
+					[7, [231, 76, 60]], // #e74c3c red
+					[10, [142, 68, 173]], // #8e44ad purple
 				]
 				const v = Math.max(0, Math.min(10, val))
 				for (let i = 0; i < stops.length - 1; i++) {
@@ -872,8 +872,8 @@
 						// Call backend API
 						// Get tolerance value (0-100 slider -> convert to weight multiplier)
 						const tolerance = parseInt(toleranceSlider.value)
-						// tolerance: 0 = weight 10 (max avoid), 100 = weight 0 (ignore barriers)
-						const barrierWeight = (100 - tolerance) / 10
+						// tolerance: 0 = weight 50 (max avoid), 100 = weight 0 (ignore barriers)
+						const barrierWeight = (100 - tolerance) / 5
 
 						const response = await fetch(
 							'http://localhost:5001/api/calculate_route',

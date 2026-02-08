@@ -39,7 +39,7 @@ def generate_clusters(barriers_df, min_severity=3):
         return {
             "config": {"center": [47.6062, -122.3321], "zoom_start": 12},
             "clusters": [],
-            "heatmap_data": []
+            "heatmap_data": [],
         }
 
     # HDBSCAN clustering on lat/lng coordinates (haversine metric)
@@ -59,11 +59,14 @@ def generate_clusters(barriers_df, min_severity=3):
     if len(clustered_df) == 0:
         return {
             "config": {
-                "center": [float(df_severe["lat"].mean()), float(df_severe["lon"].mean())],
-                "zoom_start": 12
+                "center": [
+                    float(df_severe["lat"].mean()),
+                    float(df_severe["lon"].mean()),
+                ],
+                "zoom_start": 12,
             },
             "clusters": [],
-            "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist()
+            "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist(),
         }
 
     # Calculate type breakdown per cluster
@@ -79,7 +82,10 @@ def generate_clusters(barriers_df, min_severity=3):
         max_severity=("adjusted_severity", "max"),
         n_types=("label", "nunique"),
         top_type=("label", lambda x: x.mode().iloc[0]),
-        top_neighborhood=("neighborhood", lambda x: x.mode().iloc[0] if len(x) > 0 else "Unknown"),
+        top_neighborhood=(
+            "neighborhood",
+            lambda x: x.mode().iloc[0] if len(x) > 0 else "Unknown",
+        ),
         lat_center=("lat", "mean"),
         lng_center=("lon", "mean"),
     )
@@ -98,10 +104,26 @@ def generate_clusters(barriers_df, min_severity=3):
 
     # Color palette for clusters
     colors = [
-        "#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4",
-        "#42d4f4", "#f032e6", "#bfef45", "#fabed4", "#469990",
-        "#dcbeff", "#9A6324", "#800000", "#aaffc3", "#808000",
-        "#ffd8b1", "#000075", "#a9a9a9", "#ffe119", "#000000",
+        "#e6194b",
+        "#3cb44b",
+        "#4363d8",
+        "#f58231",
+        "#911eb4",
+        "#42d4f4",
+        "#f032e6",
+        "#bfef45",
+        "#fabed4",
+        "#469990",
+        "#dcbeff",
+        "#9A6324",
+        "#800000",
+        "#aaffc3",
+        "#808000",
+        "#ffd8b1",
+        "#000075",
+        "#a9a9a9",
+        "#ffe119",
+        "#000000",
     ]
 
     # Export cluster metadata
@@ -122,24 +144,26 @@ def generate_clusters(barriers_df, min_severity=3):
             if n > 0:
                 type_breakdown[tc[2:]] = n
 
-        clusters_export.append({
-            "rank": rank + 1,
-            "cluster_id": int(cid),
-            "color": colors[rank % len(colors)],
-            "name": f"#{rank+1}: {crow['top_neighborhood']} ({crow['top_type']})",
-            "neighborhood": crow["top_neighborhood"],
-            "top_type": crow["top_type"],
-            "count": int(crow["count"]),
-            "n_types": int(crow["n_types"]),
-            "mean_severity": float(crow["mean_severity"]),
-            "max_severity": float(crow["max_severity"]),
-            "spread_m": float(crow["spread_m"]),
-            "hotspot_score": float(crow["hotspot_score"]),
-            "lat_center": float(crow["lat_center"]),
-            "lng_center": float(crow["lng_center"]),
-            "type_breakdown": type_breakdown,
-            "points": points,
-        })
+        clusters_export.append(
+            {
+                "rank": rank + 1,
+                "cluster_id": int(cid),
+                "color": colors[rank % len(colors)],
+                "name": f"#{rank+1}: {crow['top_neighborhood']} ({crow['top_type']})",
+                "neighborhood": crow["top_neighborhood"],
+                "top_type": crow["top_type"],
+                "count": int(crow["count"]),
+                "n_types": int(crow["n_types"]),
+                "mean_severity": float(crow["mean_severity"]),
+                "max_severity": float(crow["max_severity"]),
+                "spread_m": float(crow["spread_m"]),
+                "hotspot_score": float(crow["hotspot_score"]),
+                "lat_center": float(crow["lat_center"]),
+                "lng_center": float(crow["lng_center"]),
+                "type_breakdown": type_breakdown,
+                "points": points,
+            }
+        )
 
     # Map config
     center = [float(df_severe["lat"].mean()), float(df_severe["lon"].mean())]
@@ -150,5 +174,5 @@ def generate_clusters(barriers_df, min_severity=3):
             "zoom_start": 12,
         },
         "clusters": clusters_export,
-        "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist()
+        "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist(),
     }
