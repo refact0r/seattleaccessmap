@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>AccessMapSeattle</title>
+		<title>seattleAccessMap</title>
 		<link
 			rel="stylesheet"
 			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -21,13 +21,19 @@
 	<body>
 		<!-- ── Top Navigation ── -->
 		<nav class="top-nav">
-			<div class="brand">accessMapSeattle</div>
+			<div class="brand">
+				<img
+					src="logo.svg"
+					alt="seattleAccessMap logo"
+					class="brand-logo"
+				/>
+				<span class="brand-text">seattleAccessMap</span>
+			</div>
 			<div class="nav-tabs">
-				<button class="nav-tab active" data-view="explore">
-					Explore
-				</button>
+				<button class="nav-tab active" data-view="about">About</button>
+				<button class="nav-tab" data-view="explore">Explore</button>
 				<button class="nav-tab" data-view="route">Route</button>
-				<button class="nav-tab" data-view="analytics">Analytics</button>
+				<button class="nav-tab" data-view="analytics">Insights</button>
 			</div>
 		</nav>
 
@@ -35,8 +41,294 @@
 		<div class="content">
 			<!-- ── Left Panel ── -->
 			<div class="left-panel">
+				<!-- ═══ ABOUT VIEW ═══ -->
+				<div class="view-content active" id="view-about">
+					<div class="about-content">
+						<div class="about-section">
+							<h2>seattleAccessMap</h2>
+							<p>
+								Seattle's sidewalks are not equally accessible.
+								People with mobility challenges face obstacles
+								that most pedestrians never notice, like missing
+								curb ramps, broken surfaces, and blocked paths.
+								The Access to Everyday Life track's dataset from
+								Project Sidewalk contains ~80,000 crowdsourced
+								observations of sidewalk conditions in Seattle.
+								Using this data, we built a system that (1)
+								reveals where the problems are, (2) routes users
+								around them, and (3) informs the city which
+								sidewalks to prioritize fixing first.
+							</p>
+						</div>
+
+						<div class="about-section">
+							<h3>Dataset & Cleaning</h3>
+							<p>
+								The Project Sidewalk dataset contains 6 label
+								types. Each record also has coordinates,
+								neighborhood, severity (1-5), and a temporary
+								flag. From 81,973 raw records, we kept
+								<strong>79,722</strong>
+								after dropping rows with missing severity
+								ratings.
+							</p>
+						</div>
+
+						<div class="about-section">
+							<h3>Adjusted Severity Metric</h3>
+							<p>
+								Raw severity (1-5) doesn't account for the
+								differences in the label types. A lack of a
+								sidewalk is more impactful than a damaged curb
+								ramp, even if both are rated severity 3. In
+								fact, after investigating Project Sidewalk's
+								labelling methodology (by labelling a couple of
+								sidewalks ourselves!), we found that a severity
+								1 CurbRamp indicates the existence of a passable
+								curb ramp (which is a good thing). We defined a
+								normalized 0-10 scale with rescaling ranges
+								based on real-world impact:
+							</p>
+							<table class="about-table">
+								<thead>
+									<tr>
+										<th>Label</th>
+										<th>Range</th>
+										<th>Rationale</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>NoSidewalk</td>
+										<td>5 - 10</td>
+										<td>
+											Always significant; no sidewalk at
+											any severity is impactful
+										</td>
+									</tr>
+									<tr>
+										<td>NoCurbRamp</td>
+										<td>3 - 8</td>
+										<td>
+											Missing ramp is always a real
+											barrier
+										</td>
+									</tr>
+									<tr>
+										<td>Obstacle</td>
+										<td>2 - 7</td>
+										<td>
+											Obstruction; maps directly to impact
+										</td>
+									</tr>
+									<tr>
+										<td>SurfaceProblem</td>
+										<td>1 - 6</td>
+										<td>
+											Damaged surface; impactful but less
+											severe
+										</td>
+									</tr>
+									<tr>
+										<td>CurbRamp</td>
+										<td>0 - 5</td>
+										<td>
+											Positive feature; ramp exists but
+											may be degraded
+										</td>
+									</tr>
+									<tr>
+										<td>Other</td>
+										<td>1 - 4</td>
+										<td>Miscellaneous; low weight</td>
+									</tr>
+								</tbody>
+							</table>
+							<button class="about-cta" data-goto="analytics">
+								View analytics &rarr;
+							</button>
+						</div>
+
+						<div class="about-section">
+							<h3>Map Visualization</h3>
+							<p>
+								We plotted every barrier observation directly on
+								the map and color-coded each point by adjusted
+								severity. We also added a heatmap layer to
+								reveal areas with the highest overall
+								concentration of issues.
+							</p>
+							<button
+								class="about-cta"
+								data-goto="explore"
+								data-explore="barriers"
+							>
+								Explore the map &rarr;
+							</button>
+						</div>
+
+						<div class="about-section">
+							<h3>Hotspot Clustering</h3>
+							<p>
+								We use <strong>HDBSCAN</strong>, an unsupervised
+								ML clustering method, to identify barrier
+								hotspots. This is useful for people wishing to
+								avoid such areas, or for city planners looking
+								to identify areas to prioritize. We identified
+								<strong>641</strong>
+								clusters.
+							</p>
+							<p>
+								We chose HDBSCAN because unlike k-means, it does
+								not force every point into a group and it does
+								not require a preset cluster count, which is
+								helpful when hotspot density varies by
+								neighborhood. We use the haversine distance
+								metric to cluster based on accurate geographic
+								distance.
+							</p>
+							<button
+								class="about-cta"
+								data-goto="explore"
+								data-explore="clusters"
+							>
+								Explore clusters on the map &rarr;
+							</button>
+						</div>
+
+						<div class="about-section">
+							<h3>Fix Priorities</h3>
+							<p>
+								Hotspots show where barriers concentrate, but we
+								decided to take it one step further by
+								identifying exactly which barriers produce the
+								most day-to-day impact. We rank individual
+								barriers by combining adjusted severity with how
+								central their street segment is in the
+								pedestrian network.
+							</p>
+							<p class="about-formula">
+								impact = adjusted_severity &times; log(1 +
+								edge_usage)
+							</p>
+							<p>
+								We estimate <em>edge_usage</em> by sampling
+								~1,000 random shortest routes and counting how
+								often each street segment appears. This
+								highlights barriers on important roads and
+								connectors. The log keeps usage from
+								overpowering severity, so a small issue on a
+								busy street still ranks below a severe
+								obstruction in a moderately used area.
+							</p>
+							<p>
+								The map highlights the <strong>top 200</strong>
+								barriers by impact. Ties are broken by higher
+								adjusted severity, then by edge usage, ensuring
+								that consistently disruptive barriers surface
+								first.
+							</p>
+							<button
+								class="about-cta"
+								data-goto="explore"
+								data-explore="priorities"
+							>
+								Explore fix priorities on the map &rarr;
+							</button>
+						</div>
+
+						<div class="about-section">
+							<h3>Accessibility-Aware Routing</h3>
+							<p>
+								We built a route planner on the real Seattle
+								pedestrian network (via OpenStreetMap/OSMnx).
+								Each barrier is snapped to its nearest network
+								edge, and the edge's accessibility cost is the
+								sum of adjusted severities on that edge.
+							</p>
+							<p>
+								The routing algorithm is modified Dijkstra's: it
+								expands outward from the start node, always
+								picking the next unvisited node with the lowest
+								cumulative cost so far, and relaxes edges to
+								update the cheapest known path to each neighbor.
+								Edge cost is a weighted combination of distance
+								and barrier severity:
+							</p>
+							<p class="about-formula">
+								edge cost = distance + barrier_severity &times;
+								cost<sup>1.5</sup>
+							</p>
+							<p>
+								The <strong>1.5 exponent</strong> produces a
+								smooth gradient of route alternatives across the
+								tolerance slider. At one end, the route takes
+								significant detours to avoid as many barriers as
+								possible. At the other, it's the pure shortest
+								path.
+							</p>
+							<button class="about-cta" data-goto="route">
+								Try the router &rarr;
+							</button>
+						</div>
+
+						<div class="about-section">
+							<h3>Key Findings</h3>
+							<ul class="about-list">
+								<li>
+									Barriers are not uniformly distributed, some
+									neighborhoods are worse than others
+								</li>
+								<li>
+									Neighborhoods with the highest barrier count
+									and highest average severity are often
+									different
+								</li>
+								<li>
+									Accessible routes typically add 10-30%
+									distance to avoid the worst barriers - a
+									meaningful but manageable tradeoff
+								</li>
+								<li>
+									Fix prioritization shows that a small number
+									of high-traffic barriers create
+									disproportionate impact
+								</li>
+							</ul>
+						</div>
+
+						<div class="about-section">
+							<h3>Limitations & Potential Expansions</h3>
+							<ul class="about-list">
+								<li>
+									Coverage is uneven, so a low barrier count
+									may mean good sidewalks or poor survey
+									coverage
+								</li>
+								<li>
+									Our rescaled severity metric is a best
+									effort guess and might not reflect real
+									world experiences
+								</li>
+								<li>
+									Temporary barriers change and repairs happen
+								</li>
+								<li>
+									Barrier snapping to the nearest edge is
+									approximate in dense areas
+								</li>
+								<li>
+									Potential expansions: elevation/slope data,
+									transit connections, and demographic/equity
+									analysis
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
 				<!-- ═══ EXPLORE VIEW ═══ -->
-				<div class="view-content active" id="view-explore">
+				<div class="view-content" id="view-explore">
 					<div class="panel-section">
 						<h3>Overview</h3>
 						<div class="stats-row">
@@ -253,8 +545,12 @@
 
 				<!-- ═══ ANALYTICS VIEW ═══ -->
 				<div class="view-content" id="view-analytics">
-					<div class="panel-section">
-						<h3>Data Insights</h3>
+					<div class="analytics-content">
+						<h2>Data Insights</h2>
+						<p class="analytics-intro">
+							Summary statistics from 79,722 crowdsourced sidewalk
+							accessibility observations across Seattle.
+						</p>
 						<div id="analytics-container">
 							<div class="analytics-loading">
 								<div class="spinner"></div>
@@ -271,7 +567,10 @@
 
 				<!-- Legend Overlay -->
 				<div class="legend-stack" id="legend-stack">
-					<div class="map-overlay legend legend-base" id="legend-severity">
+					<div
+						class="map-overlay legend legend-base"
+						id="legend-severity"
+					>
 						<div class="legend-title">Adjusted Severity</div>
 						<div class="legend-row">
 							<span class="legend-min">0</span>
