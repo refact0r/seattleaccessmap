@@ -17,3 +17,38 @@ Hackathon prompt: `reference/access-to-everyday-life.md`. We're deviating a litt
   - `neighborhood`: 50 neighborhoods of Seattle
   - `severity`: 1-5 scale (guaranteed to be present in the cleaned dataset)
   - `is_temporary`: boolean (~771 are TRUE, rest FALSE)
+
+## Project Structure
+
+```
+/
+├── backend/                      # Python Flask API server
+│   ├── app.py                    # Server (loads preprocessed data at startup)
+│   ├── preprocess.py             # Build runtime data structures from CSV
+│   ├── requirements.txt
+│   ├── algorithms/
+│   │   └── routing.py            # Routing algorithms (operate on in-memory data)
+│   └── data_processed/           # Gitignored - preprocessed artifacts
+├── frontend/                     # Web app (plain HTML/JS + Leaflet)
+│   ├── index.html                # Main UI
+│   ├── app.js                    # Logic for fetching data and rendering map
+│   └── style.css
+├── data/
+│   ├── data.csv                  # Raw dataset
+│   └── data_clean.csv            # Cleaned dataset (from scripts/clean.py, used by backend)
+├── scripts/
+│   └── clean.py                  # Data cleaning
+├── reference/                    # Hackathon prompt and other reference files
+└── [prototype files]             # analysis.py, index.html, serve.sh, /output
+```
+
+### Data Flow
+
+1. **Data cleaning** (one-time): `scripts/clean.py` → `data/data_clean.csv`
+2. **Backend preprocessing** (run on setup/changes): `backend/preprocess.py` → `backend/data_processed/*`
+3. **Runtime**: `backend/app.py` loads preprocessed data into memory, serves API
+4. **Frontend**: Fetches from API, displays on Leaflet map, handles user interactions
+
+---
+
+**Note**: Please keep this file updated when making major changes to the project structure, data flow, or key architectural decisions. This helps both humans and AI agents understand the codebase.
