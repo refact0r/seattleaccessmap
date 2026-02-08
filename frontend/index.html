@@ -1035,6 +1035,9 @@
 						Math.max(stats.standard_barrier_cost, 0.01)) *
 					100
 				).toFixed(1)
+				const barrierCountDiff =
+					(stats.standard_barrier_count || 0) -
+					(stats.accessible_barrier_count || 0)
 
 				routeContent.innerHTML = `
                     <div class="route-stats">
@@ -1044,6 +1047,7 @@
                         </h4>
                         <p><strong>Distance:</strong> ${stats.accessible_length.toFixed(0)} m</p>
                         <p><strong>Barrier cost:</strong> ${stats.accessible_barrier_cost.toFixed(1)}</p>
+                        <p><strong>Barriers:</strong> ${stats.accessible_barrier_count || 0}</p>
                     </div>
 
                     <div class="route-stats">
@@ -1053,12 +1057,14 @@
                         </h4>
                         <p><strong>Distance:</strong> ${stats.standard_length.toFixed(0)} m</p>
                         <p><strong>Barrier cost:</strong> ${stats.standard_barrier_cost.toFixed(1)}</p>
+                        <p><strong>Barriers:</strong> ${stats.standard_barrier_count || 0}</p>
                     </div>
 
                     <div class="comparison">
                         <strong>Trade-off Analysis:</strong>
                         <p>Extra distance: ${extraDistance.toFixed(0)} m (${extraPercent > 0 ? '+' : ''}${extraPercent}%)</p>
                         <p style="color: #27ae60;">✓ Barrier reduction: ${barrierReduction}%</p>
+                        <p style="color: #27ae60;">✓ Barriers avoided: ${barrierCountDiff}</p>
                     </div>
                 `
 

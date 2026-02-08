@@ -103,21 +103,24 @@ class AccessibilityRouter:
             "stats": {
                 "accessible_length": accessible_stats["length"],
                 "accessible_barrier_cost": accessible_stats["barrier_cost"],
+                "accessible_barrier_count": accessible_stats["barrier_count"],
                 "standard_length": standard_stats["length"],
                 "standard_barrier_cost": standard_stats["barrier_cost"],
+                "standard_barrier_count": standard_stats["barrier_count"],
             },
             "snapped_start": {"lat": snapped_start[0], "lng": snapped_start[1]},
             "snapped_end": {"lat": snapped_end[0], "lng": snapped_end[1]},
         }
 
     def _calculate_route_stats(self, route, weight_fn):
-        """Calculate length and barrier cost for a route.
+        """Calculate length, barrier cost, severity sum, and barrier count for a route.
 
         Uses weight_fn to select the correct edge when parallel edges exist
         (MultiDiGraph), matching the edge Dijkstra actually traversed.
         """
         total_length = 0
         total_barrier_cost = 0
+        total_barrier_count = 0
 
         for i in range(len(route) - 1):
             u, v = route[i], route[i + 1]
@@ -126,8 +129,13 @@ class AccessibilityRouter:
             edge_data = edges[best_key]
             total_length += edge_data["length"]
             total_barrier_cost += edge_data["accessibility_cost"]
+            total_barrier_count += edge_data.get("barrier_count", 0)
 
-        return {"length": total_length, "barrier_cost": total_barrier_cost}
+        return {
+            "length": total_length,
+            "barrier_cost": total_barrier_cost,
+            "barrier_count": total_barrier_count,
+        }
 
     def _route_to_geojson(self, route):
         """Convert route to GeoJSON format."""
@@ -157,9 +165,10 @@ class AccessibilityRouter:
             graph, barriers_df["lon"].values, barriers_df["lat"].values
         )
 
-        # Initialize all edges with zero accessibility cost
+        # Initialize all edges with zero accessibility cost and barrier count
         for u, v, key, data in graph_proj.edges(keys=True, data=True):
             data["accessibility_cost"] = 0.0
+            data["barrier_count"] = 0
 
         # Accumulate barrier severity on nearest edges
         for i in range(len(nearest_edges)):
@@ -171,6 +180,7 @@ class AccessibilityRouter:
             severity = float(barriers_df.iloc[i]["adjusted_severity"])
             if graph_proj.has_edge(u, v, key):
                 graph_proj[u][v][key]["accessibility_cost"] += severity
+                graph_proj[u][v][key]["barrier_count"] += 1
 
         # Set total_cost
         for u, v, key, data in graph_proj.edges(keys=True, data=True):
