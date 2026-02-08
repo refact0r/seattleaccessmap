@@ -219,6 +219,42 @@
 				cursor: pointer;
 				text-decoration: underline;
 			}
+			.click-mode-buttons {
+				display: flex;
+				gap: 8px;
+				margin-bottom: 10px;
+			}
+			.click-mode-btn {
+				flex: 1;
+				padding: 8px;
+				background: #ecf0f1;
+				color: #333;
+				border: 2px solid #bdc3c7;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 12px;
+				font-weight: bold;
+				transition: all 0.2s;
+			}
+			.click-mode-btn:hover {
+				background: #d5dbdb;
+			}
+			.click-mode-btn.active {
+				background: #3498db;
+				color: white;
+				border-color: #2980b9;
+			}
+			.click-mode-btn.origin.active {
+				background: #e74c3c;
+				border-color: #c0392b;
+			}
+			.click-mode-btn.destination.active {
+				background: #27ae60;
+				border-color: #229954;
+			}
+			.map-click-cursor {
+				cursor: crosshair !important;
+			}
 		</style>
 	</head>
 	<body>
@@ -242,6 +278,10 @@
 
 		<div class="route-input-panel">
 			<h3>📍 Calculate Route</h3>
+			<div class="click-mode-buttons">
+				<button id="set-origin-btn" class="click-mode-btn origin">📍 Click for Origin</button>
+				<button id="set-destination-btn" class="click-mode-btn destination">🎯 Click for Destination</button>
+			</div>
 			<div class="input-group">
 				<label>Origin</label>
 				<div class="input-row">
@@ -278,6 +318,11 @@
 				})
 				.addTo(map)
 
+			// Click-to-set mode state
+			let clickMode = null // 'origin' or 'destination'
+			let originMarker = null
+			let destinationMarker = null
+
 			// Add base tile layer
 			L.tileLayer(
 				'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
@@ -295,20 +340,18 @@
 			let accessibleRouteLayer = null
 			let standardRouteLayer = null
 
-			// Load data and render
-			Promise.all([
-				fetch('../output/clusters_data.json').then((r) => r.json()),
-				fetch('../output/heatmap_data.json').then((r) => r.json()),
-			])
-				.then(([clustersData, heatmapData]) => {
-					const { config, clusters } = clustersData
+			// Load cluster data from API and render visualizations
+			fetch('http://localhost:5001/api/clusters')
+				.then((r) => r.json())
+				.then((data) => {
+					const { config, clusters, heatmap_data } = data
 
-					// Set map view
+					// Set map view from config
 					map.setView(config.center, config.zoom_start)
 
-					// Add heatmap layer
+					// Add heatmap layer (severe barriers only)
 					heatmapLayer = L.heatLayer(
-						heatmapData.map(([lat, lng, severity]) => [
+						heatmap_data.map(([lat, lng, severity]) => [
 							lat,
 							lng,
 							severity / 5,
@@ -329,30 +372,28 @@
 					layers['Severity Heatmap'] = heatmapLayer
 
 					// Add each cluster as a layer group
-					clusters.forEach((cluster, idx) => {
+					clusters.forEach((cluster) => {
 						const layerGroup = L.layerGroup()
 
-						// Build popup content once for the cluster
-						const typeBreakdownHTML = Object.entries(
-							cluster.type_breakdown,
-						)
+						// Build popup content for the cluster
+						const typeBreakdownHTML = Object.entries(cluster.type_breakdown)
 							.map(([type, count]) => `${type}: ${count}`)
 							.join('<br>')
 
 						const popupContent = `
-                    <div style="min-width: 200px;">
-                        <h4 style="margin:0 0 8px 0;">Hotspot #${cluster.rank}</h4>
-                        <strong>${cluster.neighborhood}</strong><br>
-                        <strong>Issues:</strong> ${cluster.count} (${cluster.n_types} types)<br>
-                        <strong>Mean severity:</strong> ${cluster.mean_severity.toFixed(1)}<br>
-                        <strong>Spread:</strong> ${cluster.spread_m.toFixed(0)}m<br>
-                        <strong>Top type:</strong> ${cluster.top_type}<br>
-                        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ddd;">
-                            <strong>Breakdown:</strong><br>
-                            ${typeBreakdownHTML}
-                        </div>
-                    </div>
-                `
+							<div style="min-width: 200px;">
+								<h4 style="margin:0 0 8px 0;">Hotspot #${cluster.rank}</h4>
+								<strong>${cluster.neighborhood}</strong><br>
+								<strong>Issues:</strong> ${cluster.count} (${cluster.n_types} types)<br>
+								<strong>Mean severity:</strong> ${cluster.mean_severity.toFixed(1)}<br>
+								<strong>Spread:</strong> ${cluster.spread_m.toFixed(0)}m<br>
+								<strong>Top type:</strong> ${cluster.top_type}<br>
+								<div style="margin-top:8px;padding-top:8px;border-top:1px solid #ddd;">
+									<strong>Breakdown:</strong><br>
+									${typeBreakdownHTML}
+								</div>
+							</div>
+						`
 
 						// Add all points in the cluster with popup
 						cluster.points.forEach((pt) => {
@@ -378,138 +419,103 @@
 						.layers(null, layers, { collapsed: false })
 						.addTo(map)
 
-					console.log(
-						`Loaded ${clusters.length} clusters with ${heatmapData.length} severity points`,
-					)
-
-					// Load routing data if available
-					loadRoutingData()
+					console.log(`Loaded ${clusters.length} clusters with ${heatmap_data.length} severity points`)
 				})
 				.catch((err) => {
-					console.error('Error loading data:', err)
+					console.error('Error loading clusters:', err)
 
 					// Show helpful error message
 					const errorDiv = document.createElement('div')
 					errorDiv.style.cssText =
 						'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:500px;z-index:10000;font-family:sans-serif;'
 					errorDiv.innerHTML = `
-                <h3 style="margin:0 0 15px 0;color:#d32f2f;">⚠️ Cannot Load Map Data</h3>
-                <p style="margin:10px 0;">The browser blocked loading JSON files due to CORS restrictions.</p>
-                <p style="margin:10px 0;"><strong>Solution:</strong> Start a local web server:</p>
-                <pre style="background:#f5f5f5;padding:10px;border-radius:5px;overflow-x:auto;">cd everyday
-./serve.sh</pre>
-                <p style="margin:10px 0;font-size:13px;color:#666;">Or run: <code>python3 -m http.server 8000</code></p>
-                <p style="margin:10px 0;font-size:13px;color:#666;">Then open: <strong>http://localhost:8000/index.html</strong></p>
-            `
+						<h3 style="margin:0 0 15px 0;color:#d32f2f;">⚠️ Cannot Load Cluster Data</h3>
+						<p style="margin:10px 0;">Failed to connect to the routing API.</p>
+						<p style="margin:10px 0;"><strong>Solution:</strong> Start the backend server:</p>
+						<pre style="background:#f5f5f5;padding:10px;border-radius:5px;overflow-x:auto;">python3 backend/app.py</pre>
+						<p style="margin:10px 0;font-size:13px;color:#666;">The server should be running on <strong>http://localhost:5001</strong></p>
+					`
 					document.body.appendChild(errorDiv)
 				})
 
-			// Function to load and display routing data
-			function loadRoutingData() {
-				Promise.all([
-					fetch('../output/route_accessible.geojson').then((r) =>
-						r.json(),
-					),
-					fetch('../output/route_standard.geojson').then((r) => r.json()),
-				])
-					.then(([accessibleRoute, standardRoute]) => {
-						// Calculate route statistics
-						const accessibleLength =
-							accessibleRoute.features.reduce(
-								(sum, f) => sum + (f.properties.length || 0),
-								0,
-							)
-						const standardLength = standardRoute.features.reduce(
-							(sum, f) => sum + (f.properties.length || 0),
-							0,
-						)
+			// Click-to-set mode handlers
+			document.getElementById('set-origin-btn').addEventListener('click', () => {
+				if (clickMode === 'origin') {
+					clickMode = null
+					document.getElementById('set-origin-btn').classList.remove('active')
+					document.getElementById('map').classList.remove('map-click-cursor')
+				} else {
+					clickMode = 'origin'
+					document.getElementById('set-origin-btn').classList.add('active')
+					document.getElementById('set-destination-btn').classList.remove('active')
+					document.getElementById('map').classList.add('map-click-cursor')
+				}
+			})
 
-						// Add accessible route layer (green)
-						accessibleRouteLayer = L.geoJSON(accessibleRoute, {
-							style: {
-								color: '#2ecc71',
-								weight: 5,
-								opacity: 0.8,
-							},
-						}).addTo(map)
+			document.getElementById('set-destination-btn').addEventListener('click', () => {
+				if (clickMode === 'destination') {
+					clickMode = null
+					document.getElementById('set-destination-btn').classList.remove('active')
+					document.getElementById('map').classList.remove('map-click-cursor')
+				} else {
+					clickMode = 'destination'
+					document.getElementById('set-destination-btn').classList.add('active')
+					document.getElementById('set-origin-btn').classList.remove('active')
+					document.getElementById('map').classList.add('map-click-cursor')
+				}
+			})
 
-						// Add standard route layer (blue)
-						standardRouteLayer = L.geoJSON(standardRoute, {
-							style: {
-								color: '#3498db',
-								weight: 5,
-								opacity: 0.8,
-							},
-						}).addTo(map)
+			// Map click handler
+			map.on('click', (e) => {
+				if (!clickMode) return
 
-						// Add routes to layer control
-						layers['🟢 Accessible Route'] = accessibleRouteLayer
-						layers['🔵 Standard Route'] = standardRouteLayer
+				const lat = e.latlng.lat.toFixed(4)
+				const lng = e.latlng.lng.toFixed(4)
 
-						// Update the layer control (need to recreate it)
-						document
-							.querySelector('.leaflet-control-layers')
-							?.remove()
-						L.control
-							.layers(null, layers, { collapsed: false })
-							.addTo(map)
+				if (clickMode === 'origin') {
+					document.getElementById('start-lat').value = lat
+					document.getElementById('start-lng').value = lng
 
-						// Display route statistics
-						const routingPanel =
-							document.getElementById('routing-panel')
-						const routeContent =
-							document.getElementById('route-content')
+					// Update or create origin marker
+					if (originMarker) {
+						map.removeLayer(originMarker)
+					}
+					originMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+						icon: L.divIcon({
+							className: 'custom-marker',
+							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							iconSize: [20, 20],
+							iconAnchor: [10, 10]
+						})
+					}).addTo(map)
 
-						const extraDistance = accessibleLength - standardLength
-						const extraPercent =
-							((accessibleLength / standardLength - 1) * 100).toFixed(
-								1,
-							)
+					// Deactivate click mode
+					clickMode = null
+					document.getElementById('set-origin-btn').classList.remove('active')
+					document.getElementById('map').classList.remove('map-click-cursor')
+				} else if (clickMode === 'destination') {
+					document.getElementById('end-lat').value = lat
+					document.getElementById('end-lng').value = lng
 
-						routeContent.innerHTML = `
-                        <div class="route-stats">
-                            <h4>
-                                <div class="color-box" style="background: #2ecc71;"></div>
-                                Accessible Route
-                            </h4>
-                            <p>Distance: ${accessibleLength.toFixed(0)} m</p>
-                            <p>Minimizes barrier exposure</p>
-                        </div>
+					// Update or create destination marker
+					if (destinationMarker) {
+						map.removeLayer(destinationMarker)
+					}
+					destinationMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+						icon: L.divIcon({
+							className: 'custom-marker',
+							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							iconSize: [20, 20],
+							iconAnchor: [10, 10]
+						})
+					}).addTo(map)
 
-                        <div class="route-stats">
-                            <h4>
-                                <div class="color-box" style="background: #3498db;"></div>
-                                Standard Route
-                            </h4>
-                            <p>Distance: ${standardLength.toFixed(0)} m</p>
-                            <p>Shortest distance only</p>
-                        </div>
-
-                        <div class="comparison">
-                            <strong>Trade-off:</strong>
-                            <p>Extra distance: ${extraDistance.toFixed(0)} m (${extraPercent > 0 ? '+' : ''}${extraPercent}%)</p>
-                            <p style="color: #27ae60;">✓ Reduced barrier exposure</p>
-                        </div>
-                    `
-
-						// Show the panel
-						routingPanel.classList.remove('hidden')
-
-						// Zoom to show both routes
-						const allBounds = L.featureGroup([
-							accessibleRouteLayer,
-							standardRouteLayer,
-						]).getBounds()
-						map.fitBounds(allBounds, { padding: [50, 50] })
-
-						console.log('Routes loaded successfully')
-					})
-					.catch((err) => {
-						console.log(
-							'No routing data available (run accessibility_routing.py to generate routes)',
-						)
-					})
-			}
+					// Deactivate click mode
+					clickMode = null
+					document.getElementById('set-destination-btn').classList.remove('active')
+					document.getElementById('map').classList.remove('map-click-cursor')
+				}
+			})
 
 			// Example location presets
 			function setExample1() {
@@ -517,6 +523,7 @@
 				document.getElementById('start-lng').value = -122.3321
 				document.getElementById('end-lat').value = 47.6205
 				document.getElementById('end-lng').value = -122.3493
+				updateMarkers()
 			}
 
 			function setExample2() {
@@ -524,6 +531,38 @@
 				document.getElementById('start-lng').value = -122.3035
 				document.getElementById('end-lat').value = 47.6205
 				document.getElementById('end-lng').value = -122.3212
+				updateMarkers()
+			}
+
+			function updateMarkers() {
+				const startLat = parseFloat(document.getElementById('start-lat').value)
+				const startLng = parseFloat(document.getElementById('start-lng').value)
+				const endLat = parseFloat(document.getElementById('end-lat').value)
+				const endLng = parseFloat(document.getElementById('end-lng').value)
+
+				if (!isNaN(startLat) && !isNaN(startLng)) {
+					if (originMarker) map.removeLayer(originMarker)
+					originMarker = L.marker([startLat, startLng], {
+						icon: L.divIcon({
+							className: 'custom-marker',
+							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							iconSize: [20, 20],
+							iconAnchor: [10, 10]
+						})
+					}).addTo(map)
+				}
+
+				if (!isNaN(endLat) && !isNaN(endLng)) {
+					if (destinationMarker) map.removeLayer(destinationMarker)
+					destinationMarker = L.marker([endLat, endLng], {
+						icon: L.divIcon({
+							className: 'custom-marker',
+							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+							iconSize: [20, 20],
+							iconAnchor: [10, 10]
+						})
+					}).addTo(map)
+				}
 			}
 
 			// Calculate route button handler
