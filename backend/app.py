@@ -6,6 +6,7 @@ Loads preprocessed data once at startup and provides routing endpoints.
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import json
 import pickle
 import numpy as np
 import pandas as pd
@@ -23,12 +24,12 @@ CORS(app)  # Enable CORS for browser requests
 router = None
 clusters_data = None
 barriers_cache = None
-barriers_df_global = None
+fix_priorities_data = None
 
 
 def load_preprocessed_data():
     """Load preprocessed data structures from disk."""
-    global router, clusters_data, barriers_cache, barriers_df_global
+    global router, clusters_data, barriers_cache, fix_priorities_data
 
     data_dir = Path(__file__).parent / 'data_processed'
 
@@ -71,6 +72,15 @@ def load_preprocessed_data():
         df['severity'] = df['severity'].astype(int)
         barriers_cache = df.to_dict('records')
         print(f"✓ Cached {len(barriers_cache):,} barriers for API")
+
+        # Load fix priority data if available
+        fix_priority_path = Path(__file__).parent / 'analysis' / 'fix_priority.geojson'
+        if fix_priority_path.exists():
+            with open(fix_priority_path) as f:
+                fix_priorities_data = json.load(f)
+            print(f"✓ Loaded {len(fix_priorities_data['features'])} fix priority barriers")
+        else:
+            print("⚠ fix_priority.geojson not found (run analyze_fix_priority.py to generate)")
 
         print("✓ Router initialized and ready!")
 
@@ -118,6 +128,20 @@ def get_clusters():
         return jsonify({'error': 'Cluster data not loaded'}), 500
 
     return jsonify(clusters_data)
+
+
+@app.route('/api/fix_priorities', methods=['GET'])
+def get_fix_priorities():
+    """
+    Get ranked barrier fix priorities as GeoJSON.
+
+    Returns:
+        GeoJSON FeatureCollection of Point features ranked by impact
+    """
+    if fix_priorities_data is None:
+        return jsonify({'error': 'Fix priority data not generated. Run analyze_fix_priority.py first.'}), 500
+
+    return jsonify(fix_priorities_data)
 
 
 @app.route('/api/calculate_route', methods=['POST'])
