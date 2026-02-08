@@ -29,7 +29,7 @@ def generate_clusters(barriers_df, min_severity=3):
         min_severity: Only cluster barriers with adjusted_severity >= this value (default: 4)
 
     Returns:
-        dict with 'config', 'clusters', and 'heatmap_data' keys
+        dict with 'clusters' and 'heatmap_data' keys
     """
     # Use all barriers for heatmap, filter for clustering only
     df_all = barriers_df.copy()
@@ -37,7 +37,6 @@ def generate_clusters(barriers_df, min_severity=3):
 
     if len(df_all) == 0:
         return {
-            "config": {"center": [47.6062, -122.3321], "zoom_start": 12},
             "clusters": [],
             "heatmap_data": [],
         }
@@ -58,13 +57,6 @@ def generate_clusters(barriers_df, min_severity=3):
 
     if len(clustered_df) == 0:
         return {
-            "config": {
-                "center": [
-                    float(df_severe["lat"].mean()),
-                    float(df_severe["lon"].mean()),
-                ],
-                "zoom_start": 12,
-            },
             "clusters": [],
             "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist(),
         }
@@ -165,14 +157,7 @@ def generate_clusters(barriers_df, min_severity=3):
             }
         )
 
-    # Map config
-    center = [float(df_severe["lat"].mean()), float(df_severe["lon"].mean())]
-
     return {
-        "config": {
-            "center": center,
-            "zoom_start": 12,
-        },
         "clusters": clusters_export,
         "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist(),
     }

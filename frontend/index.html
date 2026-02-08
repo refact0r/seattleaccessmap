@@ -3,1061 +3,310 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Seattle Sidewalk Accessibility Hotspots</title>
+		<title>AccessMapSeattle</title>
 		<link
 			rel="stylesheet"
 			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 		/>
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400&display=swap"
+		/>
 		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+		<link rel="stylesheet" href="style.css" />
 		<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-		<style>
-			body {
-				margin: 0;
-				padding: 0;
-				font-family:
-					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-					Oxygen, Ubuntu, Cantarell, sans-serif;
-			}
-
-			#map {
-				width: 100%;
-				height: 100vh;
-			}
-
-			.info-panel {
-				position: absolute;
-				top: 10px;
-				left: 10px;
-				background: white;
-				padding: 15px 20px;
-				border-radius: 8px;
-				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-				z-index: 1000;
-				max-width: 300px;
-			}
-
-			.info-panel h3 {
-				margin: 0 0 10px 0;
-				font-size: 16px;
-			}
-
-			.info-panel p {
-				margin: 5px 0;
-				font-size: 13px;
-				color: #666;
-			}
-
-			.loading {
-				text-align: center;
-				padding: 20px;
-			}
-
-			.routing-panel {
-				position: absolute;
-				top: 50%;
-				left: 10px;
-				transform: translateY(-50%);
-				background: white;
-				padding: 15px 20px;
-				border-radius: 8px;
-				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-				z-index: 1000;
-				max-width: 350px;
-			}
-
-			.routing-panel h3 {
-				margin: 0 0 10px 0;
-				font-size: 16px;
-			}
-
-			.routing-panel.hidden {
-				display: none;
-			}
-
-			.route-stats {
-				margin: 10px 0;
-				padding: 10px;
-				background: #f5f5f5;
-				border-radius: 5px;
-				font-size: 13px;
-			}
-
-			.route-stats h4 {
-				margin: 0 0 5px 0;
-				font-size: 13px;
-				display: flex;
-				align-items: center;
-			}
-
-			.route-stats .color-box {
-				width: 16px;
-				height: 16px;
-				margin-right: 8px;
-				border: 2px solid #333;
-			}
-
-			.route-stats p {
-				margin: 3px 0;
-				font-size: 12px;
-				color: #555;
-			}
-
-			.comparison {
-				margin-top: 10px;
-				padding-top: 10px;
-				border-top: 1px solid #ddd;
-				font-size: 12px;
-			}
-
-			.comparison p {
-				margin: 3px 0;
-			}
-
-			.route-input-panel {
-				position: absolute;
-				top: 10px;
-				right: 10px;
-				background: white;
-				padding: 15px 20px;
-				border-radius: 8px;
-				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-				z-index: 1000;
-				max-width: 300px;
-			}
-
-			.route-input-panel h3 {
-				margin: 0 0 10px 0;
-				font-size: 16px;
-			}
-
-			.input-group {
-				margin: 10px 0;
-			}
-
-			.input-group label {
-				display: block;
-				font-size: 12px;
-				font-weight: bold;
-				margin-bottom: 4px;
-				color: #333;
-			}
-
-			.input-row {
-				display: flex;
-				gap: 8px;
-			}
-
-			.input-row input {
-				flex: 1;
-				padding: 6px 8px;
-				border: 1px solid #ddd;
-				border-radius: 4px;
-				font-size: 12px;
-			}
-
-			.input-row input:focus {
-				outline: none;
-				border-color: #3498db;
-			}
-
-			.btn {
-				width: 100%;
-				padding: 10px;
-				background: #3498db;
-				color: white;
-				border: none;
-				border-radius: 5px;
-				cursor: pointer;
-				font-size: 14px;
-				font-weight: bold;
-				margin-top: 10px;
-			}
-
-			.btn:hover {
-				background: #2980b9;
-			}
-
-			.btn:disabled {
-				background: #95a5a6;
-				cursor: not-allowed;
-			}
-
-			.status-message {
-				margin-top: 10px;
-				padding: 8px;
-				border-radius: 4px;
-				font-size: 12px;
-				text-align: center;
-			}
-
-			.status-message.loading {
-				background: #fff3cd;
-				color: #856404;
-			}
-
-			.status-message.success {
-				background: #d4edda;
-				color: #155724;
-			}
-
-			.status-message.error {
-				background: #f8d7da;
-				color: #721c24;
-			}
-
-			.examples {
-				margin-top: 10px;
-				padding: 8px;
-				background: #f8f9fa;
-				border-radius: 4px;
-				font-size: 11px;
-			}
-
-			.examples p {
-				margin: 4px 0;
-				color: #666;
-			}
-
-			.examples a {
-				color: #3498db;
-				cursor: pointer;
-				text-decoration: underline;
-			}
-
-			.click-mode-buttons {
-				display: flex;
-				gap: 8px;
-				margin-bottom: 10px;
-			}
-
-			.click-mode-btn {
-				flex: 1;
-				padding: 8px;
-				background: #ecf0f1;
-				color: #333;
-				border: 2px solid #bdc3c7;
-				border-radius: 4px;
-				cursor: pointer;
-				font-size: 12px;
-				font-weight: bold;
-				transition: all 0.2s;
-			}
-
-			.click-mode-btn:hover {
-				background: #d5dbdb;
-			}
-
-			.click-mode-btn.active {
-				background: #3498db;
-				color: white;
-				border-color: #2980b9;
-			}
-
-			.click-mode-btn.origin.active {
-				background: #27ae60;
-				border-color: #c0392b;
-			}
-
-			.click-mode-btn.destination.active {
-				background: #e74c3c;
-				border-color: #229954;
-			}
-
-			.map-click-cursor {
-				cursor: crosshair !important;
-			}
-
-			.slider-group {
-				margin: 15px 0;
-			}
-
-			.slider-group label {
-				display: block;
-				margin-bottom: 8px;
-				font-weight: bold;
-				color: #2c3e50;
-			}
-
-			.slider-container {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-			}
-
-			.slider {
-				flex: 1;
-				-webkit-appearance: none;
-				appearance: none;
-				height: 6px;
-				border-radius: 3px;
-				background: linear-gradient(to right, #3498db 0%, #2ecc71 100%);
-				outline: none;
-			}
-
-			.slider::-webkit-slider-thumb {
-				-webkit-appearance: none;
-				appearance: none;
-				width: 18px;
-				height: 18px;
-				border-radius: 50%;
-				background: #2c3e50;
-				cursor: pointer;
-				border: 2px solid white;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-			}
-
-			.slider::-moz-range-thumb {
-				width: 18px;
-				height: 18px;
-				border-radius: 50%;
-				background: #2c3e50;
-				cursor: pointer;
-				border: 2px solid white;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-			}
-
-			.slider-value {
-				min-width: 100px;
-				font-size: 12px;
-				color: #555;
-				font-weight: bold;
-			}
-		</style>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 	</head>
 
 	<body>
-		<div id="map"></div>
-		<div class="info-panel">
-			<h3>🚶 Seattle Sidewalk Accessibility</h3>
-			<p>Top 30 hotspots identified by cluster analysis</p>
-			<p>
-				<strong>Toggle layers</strong> using the control in the
-				bottom-right
-			</p>
-			<p><strong>Click any point</strong> for detailed breakdown</p>
-		</div>
-
-		<div id="routing-panel" class="routing-panel hidden">
-			<h3>🗺️ Route Comparison</h3>
-			<div id="route-content">
-				<p style="color: #666; font-size: 13px">Loading routes...</p>
-			</div>
-		</div>
-
-		<div class="route-input-panel">
-			<h3>📍 Calculate Route</h3>
-			<div class="click-mode-buttons">
-				<button id="set-origin-btn" class="click-mode-btn origin">
-					📍 Click for Origin
+		<!-- ── Top Navigation ── -->
+		<nav class="top-nav">
+			<div class="brand">accessMapSeattle</div>
+			<div class="nav-tabs">
+				<button class="nav-tab active" data-view="explore">
+					Explore
 				</button>
-				<button
-					id="set-destination-btn"
-					class="click-mode-btn destination"
-				>
-					🎯 Click for Destination
-				</button>
+				<button class="nav-tab" data-view="route">Route</button>
+				<button class="nav-tab" data-view="analytics">Analytics</button>
 			</div>
-			<div class="input-group">
-				<label>Origin</label>
-				<div class="input-row">
-					<input
-						type="number"
-						id="start-lat"
-						placeholder="Lat"
-						step="0.0001"
-						value="47.6062"
-					/>
-					<input
-						type="number"
-						id="start-lng"
-						placeholder="Lng"
-						step="0.0001"
-						value="-122.3321"
-					/>
+		</nav>
+
+		<!-- ── Main Content ── -->
+		<div class="content">
+			<!-- ── Left Panel ── -->
+			<div class="left-panel">
+				<!-- ═══ EXPLORE VIEW ═══ -->
+				<div class="view-content active" id="view-explore">
+					<div class="panel-section">
+						<h3>Overview</h3>
+						<div class="stats-row">
+							<div class="stat-box">
+								<div class="value" id="stat-total">--</div>
+								<div class="label">Barriers</div>
+							</div>
+							<div class="stat-box">
+								<div class="value" id="stat-visible">--</div>
+								<div class="label">Visible</div>
+							</div>
+							<div class="stat-box">
+								<div class="value" id="stat-avg-sev">--</div>
+								<div class="label">Avg Severity</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="panel-section">
+						<h3>Filter Barriers</h3>
+
+						<div class="filter-group">
+							<label>Barrier Types</label>
+							<div class="checkbox-grid">
+								<label class="checkbox-item">
+									<input
+										type="checkbox"
+										data-type="CurbRamp"
+										checked
+									/>
+									Curb Ramp
+								</label>
+								<label class="checkbox-item">
+									<input
+										type="checkbox"
+										data-type="NoCurbRamp"
+										checked
+									/>
+									No Curb Ramp
+								</label>
+								<label class="checkbox-item">
+									<input
+										type="checkbox"
+										data-type="NoSidewalk"
+										checked
+									/>
+									No Sidewalk
+								</label>
+								<label class="checkbox-item">
+									<input
+										type="checkbox"
+										data-type="Obstacle"
+										checked
+									/>
+									Obstacle
+								</label>
+								<label class="checkbox-item">
+									<input
+										type="checkbox"
+										data-type="SurfaceProblem"
+										checked
+									/>
+									Surface Problem
+								</label>
+								<label class="checkbox-item">
+									<input
+										type="checkbox"
+										data-type="Other"
+										checked
+									/>
+									Other
+								</label>
+							</div>
+						</div>
+
+						<div class="filter-group">
+							<label>Severity Range</label>
+							<div class="severity-range">
+								<span id="sev-min-val">0</span>
+								<input
+									type="range"
+									id="sev-min"
+									min="0"
+									max="10"
+									value="0"
+									step="0.5"
+								/>
+								<input
+									type="range"
+									id="sev-max"
+									min="0"
+									max="10"
+									value="10"
+									step="0.5"
+								/>
+								<span id="sev-max-val">10</span>
+							</div>
+						</div>
+
+						<div class="filter-group">
+							<div class="toggle-row">
+								<label class="toggle-label"
+									>Hide temporary barriers</label
+								>
+								<label class="toggle-switch">
+									<input type="checkbox" id="hide-temp" />
+									<span class="toggle-slider"></span>
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="panel-section">
+						<h3>About</h3>
+						<p class="about-text">
+							Crowdsourced sidewalk accessibility data from
+							<strong>Project Sidewalk</strong>. ~80k observations
+							across 50 Seattle neighborhoods, rated by severity.
+						</p>
+					</div>
+				</div>
+
+				<!-- ═══ ROUTE VIEW ═══ -->
+				<div class="view-content" id="view-route">
+					<div class="panel-section">
+						<h3>Set Points</h3>
+						<div class="click-mode-buttons">
+							<button
+								id="set-origin-btn"
+								class="click-mode-btn origin"
+							>
+								Set Origin
+							</button>
+							<button
+								id="set-destination-btn"
+								class="click-mode-btn destination"
+							>
+								Set Destination
+							</button>
+						</div>
+						<div class="input-group">
+							<label>Origin</label>
+							<div class="input-row">
+								<input
+									type="number"
+									id="start-lat"
+									placeholder="Lat"
+									step="0.0001"
+									value="47.6062"
+								/>
+								<input
+									type="number"
+									id="start-lng"
+									placeholder="Lng"
+									step="0.0001"
+									value="-122.3321"
+								/>
+							</div>
+						</div>
+						<div class="input-group">
+							<label>Destination</label>
+							<div class="input-row">
+								<input
+									type="number"
+									id="end-lat"
+									placeholder="Lat"
+									step="0.0001"
+									value="47.6205"
+								/>
+								<input
+									type="number"
+									id="end-lng"
+									placeholder="Lng"
+									step="0.0001"
+									value="-122.3493"
+								/>
+							</div>
+						</div>
+						<div class="examples">
+							<p><strong>Examples:</strong></p>
+							<p>
+								<a onclick="setExample1()">UW → Queen Anne</a>
+							</p>
+							<p>
+								<a onclick="setExample2()">UW → Capitol Hill</a>
+							</p>
+						</div>
+					</div>
+
+					<div class="panel-section">
+						<h3>Accessibility Tolerance</h3>
+						<div class="slider-group">
+							<div class="slider-container">
+								<input
+									type="range"
+									id="tolerance-slider"
+									class="slider"
+									min="0"
+									max="100"
+									value="50"
+									step="1"
+								/>
+								<span id="tolerance-value" class="slider-value"
+									>Balanced</span
+								>
+							</div>
+							<div class="slider-labels">
+								<span>Avoid barriers</span>
+								<span>Shortest path</span>
+							</div>
+						</div>
+						<button id="calculate-btn" class="btn-primary">
+							Calculate Route
+						</button>
+						<div id="status-message"></div>
+					</div>
+
+					<div id="route-results" class="panel-section is-hidden">
+						<h3>Route Comparison</h3>
+						<div id="route-content"></div>
+					</div>
+				</div>
+
+				<!-- ═══ ANALYTICS VIEW ═══ -->
+				<div class="view-content" id="view-analytics">
+					<div class="panel-section">
+						<h3>Data Insights</h3>
+						<div id="analytics-container">
+							<div class="analytics-loading">
+								<div class="spinner"></div>
+								<p>Loading analytics...</p>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-			<div class="input-group">
-				<label>Destination</label>
-				<div class="input-row">
-					<input
-						type="number"
-						id="end-lat"
-						placeholder="Lat"
-						step="0.0001"
-						value="47.6205"
-					/>
-					<input
-						type="number"
-						id="end-lng"
-						placeholder="Lng"
-						step="0.0001"
-						value="-122.3493"
-					/>
+
+			<!-- ── Map ── -->
+			<div class="map-container">
+				<div id="map"></div>
+
+				<!-- Severity Legend Overlay -->
+				<div class="map-overlay legend">
+					<strong class="legend-title">Adjusted Severity</strong>
+					<div class="legend-row">
+						<span class="legend-min">0</span>
+						<div class="legend-bar"></div>
+						<span class="legend-max">10</span>
+					</div>
 				</div>
-			</div>
-			<div class="slider-group">
-				<label>Accessibility Tolerance</label>
-				<div class="slider-container">
-					<input
-						type="range"
-						id="tolerance-slider"
-						class="slider"
-						min="0"
-						max="100"
-						value="50"
-						step="1"
-					/>
-					<span id="tolerance-value" class="slider-value"
-						>Balanced</span
-					>
+
+				<!-- Layer Toggles Overlay -->
+				<div class="map-overlay layer-toggles">
+					<div class="layer-toggle">
+						<input type="checkbox" id="toggle-barriers" checked />
+						<label for="toggle-barriers">Barrier Points</label>
+					</div>
+					<div class="layer-toggle">
+						<input type="checkbox" id="toggle-heatmap" />
+						<label for="toggle-heatmap">Severity Heatmap</label>
+					</div>
+					<div class="layer-toggle">
+						<input type="checkbox" id="toggle-clusters" />
+						<label for="toggle-clusters">Hotspot Clusters</label>
+					</div>
 				</div>
-				<div
-					style="
-						display: flex;
-						justify-content: space-between;
-						font-size: 10px;
-						color: #888;
-						margin-top: 4px;
-					"
-				>
-					<span>🚫 Avoid barriers</span>
-					<span>🏃 Shortest path</span>
-				</div>
-			</div>
-			<button id="calculate-btn" class="btn">Calculate Route</button>
-			<div id="status-message"></div>
-			<div class="examples">
-				<p><strong>Examples:</strong></p>
-				<p><a onclick="setExample1()">UW → Queen Anne</a></p>
-				<p><a onclick="setExample2()">UW → Capitol Hill</a></p>
 			</div>
 		</div>
 
-		<script>
-			// Initialize map with zoom controls in bottom-left
-			const map = L.map('map', {
-				zoomControl: false,
-				preferCanvas: true,
-			})
+		<script type="module" src="app.js"></script>
 
-			// Add zoom control to bottom-left
-			L.control
-				.zoom({
-					position: 'bottomleft',
-				})
-				.addTo(map)
-
-			// Click-to-set mode state
-			let clickMode = null // 'origin' or 'destination'
-			let originMarker = null
-			let destinationMarker = null
-
-			// Add base tile layer
-			L.tileLayer(
-				'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-				{
-					attribution:
-						'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-					subdomains: 'abcd',
-					maxZoom: 20,
-				},
-			).addTo(map)
-
-			// Layer groups
-			const layers = {}
-			let heatmapLayer = null
-			let clustersLayer = L.layerGroup()
-			let barriersLayer = L.layerGroup().addTo(map)
-			layers['Severity Heatmap'] = L.layerGroup()
-			layers['Accessibility Clusters'] = clustersLayer
-			layers['Barrier Points'] = barriersLayer
-			let accessibleRouteLayer = null
-			let standardRouteLayer = null
-			let layerControl = L.control
-				.layers(null, layers, {
-					collapsed: false,
-					position: 'bottomright',
-				})
-				.addTo(map)
-
-			// Gradient color for adjusted severity (0-10 scale)
-			// green (0) → yellow (3.3) → orange (5) → red (7.5) → dark red (10)
-			function severityColor(val) {
-				const stops = [
-					[0, [46, 204, 113]], // #2ecc71 green
-					[3, [241, 196, 15]], // #f1c40f yellow
-					[5, [230, 126, 34]], // #e67e22 orange
-					[7, [231, 76, 60]], // #e74c3c red
-					[10, [142, 68, 173]], // #8e44ad purple
-				]
-				const v = Math.max(0, Math.min(10, val))
-				for (let i = 0; i < stops.length - 1; i++) {
-					const [lo, cLo] = stops[i]
-					const [hi, cHi] = stops[i + 1]
-					if (v <= hi) {
-						const t = (v - lo) / (hi - lo)
-						const r = Math.round(cLo[0] + t * (cHi[0] - cLo[0]))
-						const g = Math.round(cLo[1] + t * (cHi[1] - cLo[1]))
-						const b = Math.round(cLo[2] + t * (cHi[2] - cLo[2]))
-						return `rgb(${r},${g},${b})`
-					}
-				}
-				return 'rgb(142,68,173)'
-			}
-
-			// Load all barrier points for map overlay
-			fetch('http://localhost:5001/api/barriers')
-				.then((r) => r.json())
-				.then((barriers) => {
-					barriers.forEach((b) => {
-						const c = severityColor(b.adjusted_severity)
-						L.circleMarker([b.lat, b.lng], {
-							radius: 2,
-							color: c,
-							fillColor: c,
-							fillOpacity: 0.7,
-							weight: 0,
-						})
-							.bindPopup(
-								`<strong>${b.label}</strong><br>Severity: ${b.severity}/5<br>Adjusted: ${b.adjusted_severity}/10`,
-							)
-							.addTo(barriersLayer)
-					})
-					console.log(`Loaded ${barriers.length} barrier points`)
-				})
-				.catch((err) => console.error('Error loading barriers:', err))
-
-			// Load cluster data from API and render visualizations
-			fetch('http://localhost:5001/api/clusters')
-				.then((r) => r.json())
-				.then((data) => {
-					const { config, clusters, heatmap_data } = data
-
-					// Set map view from config
-					map.setView(config.center, config.zoom_start)
-
-					// Add heatmap layer (severe barriers only)
-					heatmapLayer = L.heatLayer(
-						heatmap_data.map(([lat, lng, severity]) => [
-							lat,
-							lng,
-							severity,
-						]),
-						{
-							radius: 6,
-							blur: 10,
-							max: 1.0,
-							gradient: {
-								0.4: 'green',
-								0.6: 'yellow',
-								0.8: 'orange',
-								1.0: 'red',
-							},
-						},
-					)
-					layers['Severity Heatmap'].addLayer(heatmapLayer)
-
-					// Add all clusters to a single layer group
-					clusters.forEach((cluster) => {
-						// Build popup content for the cluster
-						const typeBreakdownHTML = Object.entries(
-							cluster.type_breakdown,
-						)
-							.map(([type, count]) => `${type}: ${count}`)
-							.join('<br>')
-
-						const popupContent = `
-                            <div style="min-width: 200px;">
-                                <h4 style="margin:0 0 8px 0;">Hotspot #${cluster.rank}</h4>
-                                <strong>${cluster.neighborhood}</strong><br>
-                                <strong>Issues:</strong> ${cluster.count} (${cluster.n_types} types)<br>
-                                <strong>Mean severity:</strong> ${cluster.mean_severity.toFixed(1)}<br>
-                                <strong>Spread:</strong> ${cluster.spread_m.toFixed(0)}m<br>
-                                <strong>Top type:</strong> ${cluster.top_type}<br>
-                                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ddd;">
-                                    <strong>Breakdown:</strong><br>
-                                    ${typeBreakdownHTML}
-                                </div>
-                            </div>
-                        `
-
-						// Add all points in the cluster to shared layer group
-						cluster.points.forEach((pt) => {
-							const marker = L.circleMarker([pt.lat, pt.lng], {
-								radius: 2,
-								color: cluster.color,
-								fillColor: cluster.color,
-								fillOpacity: 0.7,
-								weight: 1,
-							})
-							marker.bindPopup(popupContent)
-							marker.addTo(clustersLayer)
-						})
-					})
-
-					console.log(
-						`Loaded ${clusters.length} clusters with ${heatmap_data.length} severity points`,
-					)
-				})
-				.catch((err) => {
-					console.error('Error loading clusters:', err)
-
-					// Show helpful error message
-					const errorDiv = document.createElement('div')
-					errorDiv.style.cssText =
-						'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:500px;z-index:10000;font-family:sans-serif;'
-					errorDiv.innerHTML = `
-                        <h3 style="margin:0 0 15px 0;color:#d32f2f;">⚠️ Cannot Load Cluster Data</h3>
-                        <p style="margin:10px 0;">Failed to connect to the routing API.</p>
-                        <p style="margin:10px 0;"><strong>Solution:</strong> Start the backend server:</p>
-                        <pre style="background:#f5f5f5;padding:10px;border-radius:5px;overflow-x:auto;">python3 backend/app.py</pre>
-                        <p style="margin:10px 0;font-size:13px;color:#666;">The server should be running on <strong>http://localhost:5001</strong></p>
-                    `
-					document.body.appendChild(errorDiv)
-				})
-
-			// Severity legend control (gradient bar for 0-10 scale)
-			const legend = L.control({ position: 'bottomleft' })
-			legend.onAdd = function () {
-				const div = L.DomUtil.create('div')
-				div.style.cssText =
-					'background:white;padding:8px 12px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.2);font-size:12px;margin-bottom:10px;'
-				div.innerHTML =
-					'<strong>Adjusted Severity</strong>' +
-					'<div style="display:flex;align-items:center;margin-top:4px;">' +
-					'<span style="margin-right:4px;">0</span>' +
-					'<div style="width:120px;height:12px;border-radius:3px;background:linear-gradient(to right,rgb(46,204,113),rgb(241,196,15),rgb(230,126,34),rgb(231,76,60),rgb(142,68,173));"></div>' +
-					'<span style="margin-left:4px;">10</span>' +
-					'</div>'
-				return div
-			}
-			legend.addTo(map)
-
-			// Tolerance slider handler
-			const toleranceSlider = document.getElementById('tolerance-slider')
-			const toleranceValue = document.getElementById('tolerance-value')
-
-			function updateToleranceLabel(value) {
-				if (value <= 20) {
-					toleranceValue.textContent = 'Max accessibility'
-				} else if (value <= 40) {
-					toleranceValue.textContent = 'High accessibility'
-				} else if (value <= 60) {
-					toleranceValue.textContent = 'Balanced'
-				} else if (value <= 80) {
-					toleranceValue.textContent = 'Prefer shorter'
-				} else {
-					toleranceValue.textContent = 'Shortest path'
-				}
-			}
-
-			toleranceSlider.addEventListener('input', (e) => {
-				updateToleranceLabel(parseInt(e.target.value))
-			})
-
-			// Click-to-set mode handlers
-			document
-				.getElementById('set-origin-btn')
-				.addEventListener('click', () => {
-					if (clickMode === 'origin') {
-						clickMode = null
-						document
-							.getElementById('set-origin-btn')
-							.classList.remove('active')
-						document
-							.getElementById('map')
-							.classList.remove('map-click-cursor')
-					} else {
-						clickMode = 'origin'
-						document
-							.getElementById('set-origin-btn')
-							.classList.add('active')
-						document
-							.getElementById('set-destination-btn')
-							.classList.remove('active')
-						document
-							.getElementById('map')
-							.classList.add('map-click-cursor')
-					}
-				})
-
-			document
-				.getElementById('set-destination-btn')
-				.addEventListener('click', () => {
-					if (clickMode === 'destination') {
-						clickMode = null
-						document
-							.getElementById('set-destination-btn')
-							.classList.remove('active')
-						document
-							.getElementById('map')
-							.classList.remove('map-click-cursor')
-					} else {
-						clickMode = 'destination'
-						document
-							.getElementById('set-destination-btn')
-							.classList.add('active')
-						document
-							.getElementById('set-origin-btn')
-							.classList.remove('active')
-						document
-							.getElementById('map')
-							.classList.add('map-click-cursor')
-					}
-				})
-
-			// Map click handler
-			map.on('click', (e) => {
-				if (!clickMode) return
-
-				const lat = e.latlng.lat.toFixed(4)
-				const lng = e.latlng.lng.toFixed(4)
-
-				if (clickMode === 'origin') {
-					document.getElementById('start-lat').value = lat
-					document.getElementById('start-lng').value = lng
-
-					// Update or create origin marker
-					if (originMarker) {
-						map.removeLayer(originMarker)
-					}
-					originMarker = L.marker([e.latlng.lat, e.latlng.lng], {
-						icon: L.divIcon({
-							className: 'custom-marker',
-							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-							iconSize: [20, 20],
-							iconAnchor: [10, 10],
-						}),
-					}).addTo(map)
-
-					// Deactivate click mode
-					clickMode = null
-					document
-						.getElementById('set-origin-btn')
-						.classList.remove('active')
-					document
-						.getElementById('map')
-						.classList.remove('map-click-cursor')
-				} else if (clickMode === 'destination') {
-					document.getElementById('end-lat').value = lat
-					document.getElementById('end-lng').value = lng
-
-					// Update or create destination marker
-					if (destinationMarker) {
-						map.removeLayer(destinationMarker)
-					}
-					destinationMarker = L.marker([e.latlng.lat, e.latlng.lng], {
-						icon: L.divIcon({
-							className: 'custom-marker',
-							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-							iconSize: [20, 20],
-							iconAnchor: [10, 10],
-						}),
-					}).addTo(map)
-
-					// Deactivate click mode
-					clickMode = null
-					document
-						.getElementById('set-destination-btn')
-						.classList.remove('active')
-					document
-						.getElementById('map')
-						.classList.remove('map-click-cursor')
-				}
-			})
-
-			// Example location presets
-			function setExample1() {
-				document.getElementById('start-lat').value = 47.6551
-				document.getElementById('start-lng').value = -122.3046
-				document.getElementById('end-lat').value = 47.6305
-				document.getElementById('end-lng').value = -122.3566
-				updateMarkers()
-			}
-
-			function setExample2() {
-				document.getElementById('start-lat').value = 47.6552
-				document.getElementById('start-lng').value = -122.3045
-				document.getElementById('end-lat').value = 47.6205
-				document.getElementById('end-lng').value = -122.3212
-				updateMarkers()
-			}
-
-			function updateMarkers() {
-				const startLat = parseFloat(
-					document.getElementById('start-lat').value,
-				)
-				const startLng = parseFloat(
-					document.getElementById('start-lng').value,
-				)
-				const endLat = parseFloat(
-					document.getElementById('end-lat').value,
-				)
-				const endLng = parseFloat(
-					document.getElementById('end-lng').value,
-				)
-
-				if (!isNaN(startLat) && !isNaN(startLng)) {
-					if (originMarker) map.removeLayer(originMarker)
-					originMarker = L.marker([startLat, startLng], {
-						icon: L.divIcon({
-							className: 'custom-marker',
-							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-							iconSize: [20, 20],
-							iconAnchor: [10, 10],
-						}),
-					}).addTo(map)
-				}
-
-				if (!isNaN(endLat) && !isNaN(endLng)) {
-					if (destinationMarker) map.removeLayer(destinationMarker)
-					destinationMarker = L.marker([endLat, endLng], {
-						icon: L.divIcon({
-							className: 'custom-marker',
-							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-							iconSize: [20, 20],
-							iconAnchor: [10, 10],
-						}),
-					}).addTo(map)
-				}
-			}
-
-			// Calculate route button handler
-			document
-				.getElementById('calculate-btn')
-				.addEventListener('click', async () => {
-					const startLat = parseFloat(
-						document.getElementById('start-lat').value,
-					)
-					const startLng = parseFloat(
-						document.getElementById('start-lng').value,
-					)
-					const endLat = parseFloat(
-						document.getElementById('end-lat').value,
-					)
-					const endLng = parseFloat(
-						document.getElementById('end-lng').value,
-					)
-
-					// Validate inputs
-					if (
-						isNaN(startLat) ||
-						isNaN(startLng) ||
-						isNaN(endLat) ||
-						isNaN(endLng)
-					) {
-						showStatus('Please enter valid coordinates', 'error')
-						return
-					}
-
-					// Show loading state
-					const btn = document.getElementById('calculate-btn')
-					btn.disabled = true
-					btn.textContent = 'Calculating...'
-					showStatus('Calculating routes...', 'loading')
-
-					try {
-						// Call backend API
-						// Get tolerance value (0-100 slider -> convert to weight multiplier)
-						const tolerance = parseInt(toleranceSlider.value)
-						// tolerance: 0 = weight 50 (max avoid), 100 = weight 0 (ignore barriers)
-						const barrierWeight = (100 - tolerance) / 5
-
-						const response = await fetch(
-							'http://localhost:5001/api/calculate_route',
-							{
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									start_lat: startLat,
-									start_lng: startLng,
-									end_lat: endLat,
-									end_lng: endLng,
-									barrier_weight: barrierWeight,
-								}),
-							},
-						)
-
-						if (!response.ok) {
-							throw new Error(
-								`Server error: ${response.statusText}`,
-							)
-						}
-
-						const data = await response.json()
-
-						// Update markers to show snapped positions
-						if (data.snapped_start) {
-							if (originMarker) map.removeLayer(originMarker)
-							originMarker = L.marker(
-								[
-									data.snapped_start.lat,
-									data.snapped_start.lng,
-								],
-								{
-									icon: L.divIcon({
-										className: 'custom-marker',
-										html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-										iconSize: [20, 20],
-										iconAnchor: [10, 10],
-									}),
-								},
-							)
-								.addTo(map)
-								.bindPopup('Route Start (snapped to network)')
-						}
-
-						if (data.snapped_end) {
-							if (destinationMarker)
-								map.removeLayer(destinationMarker)
-							destinationMarker = L.marker(
-								[data.snapped_end.lat, data.snapped_end.lng],
-								{
-									icon: L.divIcon({
-										className: 'custom-marker',
-										html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-										iconSize: [20, 20],
-										iconAnchor: [10, 10],
-									}),
-								},
-							)
-								.addTo(map)
-								.bindPopup('Route End (snapped to network)')
-						}
-
-						// Clear existing route layers
-						if (accessibleRouteLayer) {
-							map.removeLayer(accessibleRouteLayer)
-							delete layers['🟢 Accessible Route']
-						}
-						if (standardRouteLayer) {
-							map.removeLayer(standardRouteLayer)
-							delete layers['🔵 Standard Route']
-						}
-
-						// Add new routes
-						accessibleRouteLayer = L.geoJSON(
-							data.accessible_route,
-							{
-								style: {
-									color: '#2ecc71',
-									weight: 5,
-									opacity: 0.8,
-								},
-							},
-						).addTo(map)
-
-						standardRouteLayer = L.geoJSON(data.standard_route, {
-							style: {
-								color: '#3498db',
-								weight: 5,
-								opacity: 0.8,
-							},
-						}).addTo(map)
-
-						// Update layers
-						layers['🟢 Accessible Route'] = accessibleRouteLayer
-						layers['🔵 Standard Route'] = standardRouteLayer
-
-						// Recreate layer control
-						if (layerControl) {
-							layerControl.remove()
-						}
-						layerControl = L.control
-							.layers(null, layers, {
-								collapsed: false,
-								position: 'bottomright',
-							})
-							.addTo(map)
-
-						// Display statistics
-						displayRouteStats(data.stats)
-
-						// Zoom to routes
-						const allBounds = L.featureGroup([
-							accessibleRouteLayer,
-							standardRouteLayer,
-						]).getBounds()
-						map.fitBounds(allBounds, { padding: [50, 50] })
-
-						showStatus('Routes calculated!', 'success')
-					} catch (error) {
-						console.error('Error calculating route:', error)
-						showStatus(
-							'Error: Make sure routing server is running (python3 backend/app.py)',
-							'error',
-						)
-					} finally {
-						btn.disabled = false
-						btn.textContent = 'Calculate Routes'
-					}
-				})
-
-			function showStatus(message, type) {
-				const statusDiv = document.getElementById('status-message')
-				statusDiv.textContent = message
-				statusDiv.className = `status-message ${type}`
-				if (type === 'success') {
-					setTimeout(() => {
-						statusDiv.textContent = ''
-						statusDiv.className = ''
-					}, 3000)
-				}
-			}
-
-			function displayRouteStats(stats) {
-				const routingPanel = document.getElementById('routing-panel')
-				const routeContent = document.getElementById('route-content')
-
-				const extraDistance =
-					stats.accessible_length - stats.standard_length
-				const extraPercent = (
-					(stats.accessible_length / stats.standard_length - 1) *
-					100
-				).toFixed(1)
-				const barrierReduction = (
-					((stats.standard_barrier_cost -
-						stats.accessible_barrier_cost) /
-						Math.max(stats.standard_barrier_cost, 0.01)) *
-					100
-				).toFixed(1)
-				const barrierCountDiff =
-					(stats.standard_barrier_count || 0) -
-					(stats.accessible_barrier_count || 0)
-
-				routeContent.innerHTML = `
-                    <div class="route-stats">
-                        <h4>
-                            <div class="color-box" style="background: #2ecc71;"></div>
-                            Accessible Route
-                        </h4>
-                        <p><strong>Distance:</strong> ${stats.accessible_length.toFixed(0)} m</p>
-                        <p><strong>Barrier cost:</strong> ${stats.accessible_barrier_cost.toFixed(1)}</p>
-                        <p><strong>Barriers:</strong> ${stats.accessible_barrier_count || 0}</p>
-                    </div>
-
-                    <div class="route-stats">
-                        <h4>
-                            <div class="color-box" style="background: #3498db;"></div>
-                            Standard Route
-                        </h4>
-                        <p><strong>Distance:</strong> ${stats.standard_length.toFixed(0)} m</p>
-                        <p><strong>Barrier cost:</strong> ${stats.standard_barrier_cost.toFixed(1)}</p>
-                        <p><strong>Barriers:</strong> ${stats.standard_barrier_count || 0}</p>
-                    </div>
-
-                    <div class="comparison">
-                        <strong>Trade-off Analysis:</strong>
-                        <p>Extra distance: ${extraDistance.toFixed(0)} m (${extraPercent > 0 ? '+' : ''}${extraPercent}%)</p>
-                        <p style="color: #27ae60;">✓ Barrier reduction: ${barrierReduction}%</p>
-                        <p style="color: #27ae60;">✓ Barriers avoided: ${barrierCountDiff}</p>
-                    </div>
-                `
-
-				routingPanel.classList.remove('hidden')
-			}
-		</script>
 	</body>
 </html>

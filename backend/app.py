@@ -7,6 +7,7 @@ Loads preprocessed data once at startup and provides routing endpoints.
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pickle
+import numpy as np
 import pandas as pd
 from pathlib import Path
 import sys
@@ -22,11 +23,12 @@ CORS(app)  # Enable CORS for browser requests
 router = None
 clusters_data = None
 barriers_cache = None
+barriers_df_global = None
 
 
 def load_preprocessed_data():
     """Load preprocessed data structures from disk."""
-    global router, clusters_data, barriers_cache
+    global router, clusters_data, barriers_cache, barriers_df_global
 
     data_dir = Path(__file__).parent / 'data_processed'
 
@@ -41,6 +43,7 @@ def load_preprocessed_data():
             graph_proj = pickle.load(f)
 
         barriers_df = pd.read_pickle(data_dir / 'barriers.pkl')
+        barriers_df_global = barriers_df
 
         with open(data_dir / 'barrier_tree.pkl', 'rb') as f:
             barrier_tree = pickle.load(f)
@@ -61,7 +64,8 @@ def load_preprocessed_data():
         print(f"✓ Loaded {len(clusters_data['clusters'])} clusters")
 
         # Precompute barriers JSON (avoids slow iterrows at request time)
-        df = barriers_df[['lat', 'lon', 'severity', 'adjusted_severity', 'label']].copy()
+        cache_cols = ['lat', 'lon', 'severity', 'adjusted_severity', 'label', 'is_temporary']
+        df = barriers_df[[c for c in cache_cols if c in barriers_df.columns]].copy()
         df = df.rename(columns={'lon': 'lng'})
         df['adjusted_severity'] = df['adjusted_severity'].round(1)
         df['severity'] = df['severity'].astype(int)
@@ -108,7 +112,7 @@ def get_clusters():
     Get HDBSCAN cluster analysis of severe barriers.
 
     Returns:
-        JSON with config, clusters (hotspot metadata), and heatmap_data
+        JSON with clusters (hotspot metadata) and heatmap_data
     """
     if clusters_data is None:
         return jsonify({'error': 'Cluster data not loaded'}), 500
@@ -167,6 +171,91 @@ def calculate_route():
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/analytics', methods=['GET'])
+def get_analytics():
+    """
+    Pre-computed analytics for the dashboard.
+
+    Returns:
+        JSON with type_counts, type_severity, top/bottom neighborhoods,
+        severity_distribution, and neighborhood×type severity matrix.
+    """
+    if barriers_df_global is None:
+        return jsonify({'error': 'Data not loaded'}), 500
+
+    df = barriers_df_global
+
+    # 1. Barrier counts by type
+    type_counts = df['label'].value_counts()
+    type_counts_data = {
+        'labels': type_counts.index.tolist(),
+        'values': type_counts.values.tolist(),
+    }
+
+    # 2. Mean adjusted severity by type
+    type_sev = df.groupby('label')['adjusted_severity'].mean().sort_values(ascending=False)
+    type_severity_data = {
+        'labels': type_sev.index.tolist(),
+        'values': [round(v, 2) for v in type_sev.values.tolist()],
+    }
+
+    # 3. Top 10 neighborhoods by barrier count
+    neigh_counts = df['neighborhood'].value_counts()
+    top_n = neigh_counts.head(10)
+    top_neighborhoods = {
+        'labels': top_n.index.tolist(),
+        'values': top_n.values.tolist(),
+    }
+
+    # 4. Bottom 10 neighborhoods by barrier count
+    bottom_n = neigh_counts.tail(10).sort_values(ascending=True)
+    bottom_neighborhoods = {
+        'labels': bottom_n.index.tolist(),
+        'values': bottom_n.values.tolist(),
+    }
+
+    # 5. Adjusted severity distribution (histogram)
+    bins = np.arange(0, 11, 0.5)
+    hist_values, hist_edges = np.histogram(df['adjusted_severity'], bins=bins)
+    severity_distribution = {
+        'labels': [f'{e:.1f}' for e in hist_edges[:-1]],
+        'values': hist_values.tolist(),
+    }
+
+    # 6. Neighborhood × Type severity matrix
+    types = sorted(df['label'].unique().tolist())
+    neighborhoods = sorted(df['neighborhood'].unique().tolist())
+    pivot = df.pivot_table(
+        values='adjusted_severity',
+        index='neighborhood',
+        columns='label',
+        aggfunc='mean',
+    ).reindex(index=neighborhoods, columns=types)
+
+    matrix = []
+    for n in neighborhoods:
+        row = []
+        for t in types:
+            val = pivot.loc[n, t]
+            row.append(round(float(val), 2) if pd.notna(val) else None)
+        matrix.append(row)
+
+    neighborhood_type_severity = {
+        'neighborhoods': neighborhoods,
+        'types': types,
+        'matrix': matrix,
+    }
+
+    return jsonify({
+        'type_counts': type_counts_data,
+        'type_severity': type_severity_data,
+        'top_neighborhoods': top_neighborhoods,
+        'bottom_neighborhoods': bottom_neighborhoods,
+        'severity_distribution': severity_distribution,
+        'neighborhood_type_severity': neighborhood_type_severity,
+    })
 
 
 if __name__ == '__main__':
