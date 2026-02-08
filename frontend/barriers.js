@@ -25,13 +25,12 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 					.setContent(content)
 					.openOn(map)
 			})
-			return { marker, data: b }
+			return { marker, data: b, visible: true }
 		})
 	}
 
-	function renderBarriers(markers) {
+	function addAllMarkers(markers) {
 		const token = ++renderToken
-		barriersLayer.clearLayers()
 		const chunkSize = 1500
 		let i = 0
 
@@ -44,9 +43,6 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 
 			if (i < markers.length) {
 				requestAnimationFrame(addChunk)
-			} else {
-				document.getElementById('stat-visible').textContent =
-					markers.length.toLocaleString()
 			}
 		}
 
@@ -64,24 +60,32 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 		return { types, sevMin, sevMax, hideTemp }
 	}
 
+	function setMarkerVisibility(markerObj, visible) {
+		if (markerObj.visible === visible) return
+		markerObj.visible = visible
+		markerObj.marker.options.interactive = visible
+		markerObj.marker.setStyle({
+			opacity: visible ? 1 : 0,
+			fillOpacity: visible ? 0.7 : 0,
+		})
+	}
+
 	function applyFilters() {
 		const { types, sevMin, sevMax, hideTemp } = getActiveFilters()
-		const filteredMarkers = []
+		let visibleCount = 0
 		for (let i = 0; i < allBarrierMarkers.length; i++) {
 			const { data } = allBarrierMarkers[i]
-			if (!types.includes(data.label)) continue
-			if (data.adjusted_severity < sevMin) continue
-			if (data.adjusted_severity > sevMax) continue
-			if (hideTemp && data.is_temporary) continue
-			filteredMarkers.push(allBarrierMarkers[i])
+			let visible = true
+			if (!types.includes(data.label)) visible = false
+			if (data.adjusted_severity < sevMin) visible = false
+			if (data.adjusted_severity > sevMax) visible = false
+			if (hideTemp && data.is_temporary) visible = false
+			if (visible) visibleCount++
+			setMarkerVisibility(allBarrierMarkers[i], visible)
 		}
-		// Avoid heavy re-rendering when layer is hidden
-		if (map.hasLayer(barriersLayer)) {
-			renderBarriers(filteredMarkers)
-		} else {
-			document.getElementById('stat-visible').textContent =
-				filteredMarkers.length.toLocaleString()
-		}
+
+		document.getElementById('stat-visible').textContent =
+			visibleCount.toLocaleString()
 	}
 
 	let filterTimer = null
@@ -134,6 +138,7 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 				avgSev.toFixed(1)
 
 			buildBarrierMarkers(barriers)
+			addAllMarkers(allBarrierMarkers)
 			applyFilters()
 			console.log(`Loaded ${barriers.length} barrier points`)
 		})
