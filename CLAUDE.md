@@ -90,7 +90,7 @@ python3 preprocess.py  # → data_processed/*.pkl (network graph + edge costs)
 
 - Loads `data/data_clean.csv` + OSMnx Seattle walk network
 - Snaps each barrier to its nearest edge using `ox.distance.nearest_edges` and accumulates severity
-- Saves preprocessed routing structures to `data_processed/*.pkl` (~200MB)
+- Saves preprocessed routing structures to `data_processed/*.pkl`
 
 **Phase 3: Runtime**
 
@@ -120,13 +120,13 @@ python3 backend/app.py  # Loads .pkl files, serves on :5001
 **Runtime edge weight** (with barrier_weight `bw`):
 
 - `weight = length + bw × accessibility_cost²`
-- The quadratic penalty (`cost²`) produces a gradient of routes across the slider range — low `bw` avoids only the worst edges, high `bw` avoids all barrier edges. A linear penalty would produce binary (all-or-nothing) route switching.
+- The penalty (`cost^(1.5)`) produces a gradient of routes across the slider range — low `bw` avoids only the worst edges, high `bw` avoids all barrier edges. A linear penalty would produce binary (all-or-nothing) route switching.
 - When `bw < 0.01`, falls back to `weight = length` (pure shortest path).
 
 **Barrier tolerance slider** (frontend):
 
 - Slider range: 0 (avoid all barriers) → 100 (ignore barriers)
-- Maps to `barrier_weight = (100 - tolerance) / 5`
+- Maps to `barrier_weight = (100 - tolerance) / n`
 
 **Route types**:
 
