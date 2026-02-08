@@ -147,7 +147,6 @@ export function initPriorities({
 					.addTo(prioritiesLayer)
 				priorityMarkers.push(marker)
 
-				// Sidebar list item
 				if (listEl) {
 					const item = document.createElement('div')
 					item.className = 'priority-item'
@@ -170,7 +169,6 @@ export function initPriorities({
 				}
 			})
 
-			console.log(`Loaded ${features.length} fix priorities`)
 		})
 		.catch((err) => {
 			console.error('Error loading fix priorities:', err)

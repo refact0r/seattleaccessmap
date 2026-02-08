@@ -108,7 +108,6 @@ export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 		}, 120)
 	}
 
-	// Severity slider display update
 	document.getElementById('sev-min').addEventListener('input', (e) => {
 		const val = parseFloat(e.target.value)
 		const maxSlider = document.getElementById('sev-max')
@@ -129,7 +128,6 @@ export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 	document.getElementById('sev-min').addEventListener('change', applyFilters)
 	document.getElementById('sev-max').addEventListener('change', applyFilters)
 
-	// Checkbox & toggle listeners
 	document.querySelectorAll('[data-type]').forEach((cb) => {
 		cb.addEventListener('change', scheduleApplyFilters)
 	})
@@ -153,7 +151,6 @@ export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 			buildBarrierMarkers(barriers)
 			addAllMarkers(allBarrierMarkers)
 			applyFilters()
-			console.log(`Loaded ${barriers.length} barrier points`)
 		})
 		.catch((err) => {
 			console.error('Error loading barriers:', err)

@@ -20,12 +20,16 @@ fix_priorities_data = None
 barriers_df_global = None
 
 
+def log(message):
+    print(message.lower())
+
+
 def load_preprocessed_data():
     global router, clusters_data, barriers_cache, fix_priorities_data, barriers_df_global
 
     data_dir = Path(__file__).parent / "data_processed"
 
-    print("Loading preprocessed data...")
+    log("loading data")
 
     try:
         with open(data_dir / "graph.pkl", "rb") as f:
@@ -50,12 +54,6 @@ def load_preprocessed_data():
             graph, graph_proj, barriers_df, barrier_tree, config
         )
 
-        print(
-            f"✓ Loaded network: {len(graph.nodes):,} nodes, {len(graph.edges):,} edges"
-        )
-        print(f"✓ Loaded {len(barriers_df):,} barriers")
-        print(f"✓ Loaded {len(clusters_data['clusters'])} clusters")
-
         cache_cols = [
             "lat",
             "lon",
@@ -69,27 +67,18 @@ def load_preprocessed_data():
         df["adjusted_severity"] = df["adjusted_severity"].round(1)
         df["severity"] = df["severity"].astype(int)
         barriers_cache = df.to_dict("records")
-        print(f"✓ Cached {len(barriers_cache):,} barriers for API")
 
         fix_priority_path = Path(__file__).parent / "analysis" / "fix_priority.geojson"
         if fix_priority_path.exists():
             with open(fix_priority_path) as f:
                 fix_priorities_data = json.load(f)
-            print(
-                f"✓ Loaded {len(fix_priorities_data['features'])} fix priority barriers"
-            )
-        else:
-            print(
-                "⚠ fix_priority.geojson not found (run analyze_fix_priority.py to generate)"
-            )
-
-        print("✓ Router initialized and ready!")
+        log("data ready")
 
     except FileNotFoundError as e:
-        print(f"\n❌ Error: Preprocessed data not found!")
-        print(f"   Missing file: {e.filename}")
-        print("\n   Please run preprocessing first:")
-        print("   python3 backend/preprocess.py\n")
+        log("error: preprocessed data not found")
+        if e.filename:
+            log(f"missing file: {e.filename}")
+        log("run: python3 backend/preprocess.py")
         sys.exit(1)
 
 
@@ -148,34 +137,20 @@ def calculate_route():
         end_lng = data["end_lng"]
         barrier_weight = data.get("barrier_weight", 1.0)
 
-        print(f"Calculating route: ({start_lat}, {start_lng}) → ({end_lat}, {end_lng})")
-        print(f"  Barrier weight: {barrier_weight:.2f}")
-
         result = router.calculate_route(
             start_lat, start_lng, end_lat, end_lng, barrier_weight
         )
 
-        print(f"✓ Routes calculated successfully")
-
         return jsonify(result)
 
     except ValueError as e:
-        print(f"ValueError: {e}")
-        import traceback
-
-        traceback.print_exc()
+        log(f"error: {e}")
         return jsonify({"error": str(e)}), 400
     except KeyError as e:
-        print(f"KeyError: {e}")
-        import traceback
-
-        traceback.print_exc()
+        log(f"error: {e}")
         return jsonify({"error": f"Missing parameter: {e}"}), 400
     except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-
-        traceback.print_exc()
+        log(f"error: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -254,15 +229,7 @@ def get_analytics():
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("ACCESSIBILITY ROUTING API SERVER")
-    print("=" * 60)
-
     load_preprocessed_data()
-
-    print("\n" + "=" * 60)
-    print("Starting Flask server on http://localhost:5001")
-    print("Press Ctrl+C to stop")
-    print("=" * 60 + "\n")
+    log("server listening http://localhost:5001")
 
     app.run(host="0.0.0.0", port=5001, debug=False)

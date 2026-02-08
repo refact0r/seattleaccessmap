@@ -101,8 +101,6 @@ class AccessibilityRouter:
 
     @staticmethod
     def calculate_edge_costs(graph, graph_proj, barriers_df, barrier_tree, config):
-        print(f"Snapping {len(barriers_df):,} barriers to nearest edges...")
-
         nearest_edges = ox.distance.nearest_edges(
             graph, barriers_df["lon"].values, barriers_df["lat"].values
         )
@@ -124,13 +122,3 @@ class AccessibilityRouter:
 
         for u, v, key, data in graph_proj.edges(keys=True, data=True):
             data["total_cost"] = data.get("length", 0) + data["accessibility_cost"]
-
-        costs = [
-            d["accessibility_cost"]
-            for _, _, _, d in graph_proj.edges(keys=True, data=True)
-        ]
-        nonzero = sum(1 for c in costs if c > 0)
-        print(
-            f"Edge costs calculated! {nonzero:,}/{len(costs):,} edges have barriers "
-            f"({100*nonzero/len(costs):.1f}%)"
-        )

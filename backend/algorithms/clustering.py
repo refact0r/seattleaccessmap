@@ -1,7 +1,3 @@
-"""
-HDBSCAN clustering analysis for accessibility barriers.
-"""
-
 import numpy as np
 import pandas as pd
 import hdbscan
@@ -9,7 +5,6 @@ from scipy.spatial import ConvexHull
 
 
 def spatial_spread_meters(group):
-    """Calculate max spatial spread from centroid in meters (rough approximation)."""
     lat_spread = (group["lat"].max() - group["lat"].min()) * 111_000
     lng_spread = (
         (group["lon"].max() - group["lon"].min())
@@ -20,17 +15,6 @@ def spatial_spread_meters(group):
 
 
 def generate_clusters(barriers_df, min_severity=3):
-    """
-    Generate HDBSCAN clusters from barrier data.
-
-    Args:
-        barriers_df: DataFrame with columns: lat, lon, adjusted_severity, label, attr_id, neighborhood
-        min_severity: Only cluster barriers with adjusted_severity >= this value (default: 4)
-
-    Returns:
-        dict with 'clusters' and 'heatmap_data' keys
-    """
-    # Use all barriers for heatmap, filter for clustering only
     df_all = barriers_df.copy()
     df_severe = barriers_df[barriers_df["adjusted_severity"] >= min_severity].copy()
 
@@ -40,7 +24,6 @@ def generate_clusters(barriers_df, min_severity=3):
             "heatmap_data": [],
         }
 
-    # HDBSCAN clustering on lat/lng coordinates (haversine metric)
     coords = np.radians(df_severe[["lat", "lon"]].values)
 
     clusterer = hdbscan.HDBSCAN(
@@ -51,7 +34,7 @@ def generate_clusters(barriers_df, min_severity=3):
     )
     df_severe["cluster"] = clusterer.fit_predict(coords)
 
-    # Filter to only clustered points (exclude noise: cluster == -1)
+    # exclude noise (cluster == -1)
     clustered_df = df_severe[df_severe["cluster"] != -1]
 
     if len(clustered_df) == 0:
@@ -60,13 +43,11 @@ def generate_clusters(barriers_df, min_severity=3):
             "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist(),
         }
 
-    # Calculate type breakdown per cluster
     type_counts = (
         clustered_df.groupby(["cluster", "label"]).size().unstack(fill_value=0)
     )
     type_counts.columns = [f"n_{c}" for c in type_counts.columns]
 
-    # Calculate cluster statistics
     cluster_stats = clustered_df.groupby("cluster").agg(
         count=("attr_id", "size"),
         mean_severity=("adjusted_severity", "mean"),
@@ -85,36 +66,34 @@ def generate_clusters(barriers_df, min_severity=3):
         spatial_spread_meters, include_groups=False
     )
 
-    # Calculate hotspot score: count × mean severity
     cluster_stats["hotspot_score"] = (
         cluster_stats["count"] * cluster_stats["mean_severity"]
     )
     cluster_stats = cluster_stats.sort_values("hotspot_score", ascending=False)
 
-    # Export cluster metadata
     clusters_export = []
     for rank, (cid, crow) in enumerate(cluster_stats.iterrows()):
-        # Get all points in this cluster
         cluster_pts = df_severe[df_severe["cluster"] == cid]
         points = [
             {"lat": float(row["lat"]), "lng": float(row["lon"])}
             for _, row in cluster_pts.iterrows()
         ]
 
-        # Compute convex hull for cluster boundary
         hull = None
         unique_coords = cluster_pts[["lat", "lon"]].drop_duplicates().values
         if len(unique_coords) >= 3:
             try:
                 ch = ConvexHull(unique_coords)
                 hull = [
-                    {"lat": float(unique_coords[i, 0]), "lng": float(unique_coords[i, 1])}
+                    {
+                        "lat": float(unique_coords[i, 0]),
+                        "lng": float(unique_coords[i, 1]),
+                    }
                     for i in ch.vertices
                 ]
             except Exception:
-                pass  # degenerate geometry (e.g. collinear points)
+                pass
 
-        # Build type breakdown
         type_cols = [c for c in crow.index if c.startswith("n_")]
         type_breakdown = {}
         for tc in type_cols:

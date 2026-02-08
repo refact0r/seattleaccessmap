@@ -86,7 +86,6 @@ export function initClusters({
 				})
 			})
 
-			console.log(`Loaded ${clusters.length} clusters`)
 		})
 		.catch((err) => {
 			console.error('Error loading clusters:', err)

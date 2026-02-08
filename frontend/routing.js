@@ -114,7 +114,6 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 		}
 	}
 
-	// Click-to-set mode
 	document.getElementById('set-origin-btn').addEventListener('click', () => {
 		setClickMode(clickMode === 'origin' ? null : 'origin')
 	})
@@ -398,7 +397,6 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 		resultsDiv.classList.remove('is-hidden')
 	}
 
-	// Keep inline example links working.
 	window.setExample1 = setExample1
 	window.setExample2 = setExample2
 

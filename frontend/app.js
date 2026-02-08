@@ -47,8 +47,6 @@ const routing = initRouting({
 
 const analytics = initAnalytics({ severityColor, cssVar, themeColors })
 
-// Layer toggles
-
 const legendSeverity = document.getElementById('legend-severity')
 const legendPriorities = document.getElementById('legend-priorities')
 const toggleBarriers = document.getElementById('toggle-barriers')
