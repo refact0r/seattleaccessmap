@@ -23,3 +23,9 @@ ENV/
 backend/data_processed/*.pkl
 backend/data_processed/*.json
 backend/cache/*.json
+
+# Analysis caches (regenerable)
+backend/analysis/edge_usage_cache.pkl
+
+# Root-level cache (geocoding, etc.)
+cache/
