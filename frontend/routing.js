@@ -1,47 +1,34 @@
-export function initRouting({ map, themeColors }) {
+export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 	let clickMode = null
 	let originMarker = null
 	let destinationMarker = null
 
 	const toleranceSlider = document.getElementById('tolerance-slider')
 
+	function setClickMode(mode) {
+		clickMode = mode
+		const mapEl = document.getElementById('map')
+		const originBtn = document.getElementById('set-origin-btn')
+		const destBtn = document.getElementById('set-destination-btn')
+
+		originBtn.classList.toggle('active', clickMode === 'origin')
+		destBtn.classList.toggle('active', clickMode === 'destination')
+		mapEl.classList.toggle('map-click-cursor', Boolean(clickMode))
+
+		if (setOverlayInteractivity) {
+			setOverlayInteractivity(!clickMode)
+		}
+	}
+
 	// Click-to-set mode
 	document.getElementById('set-origin-btn').addEventListener('click', () => {
-		if (clickMode === 'origin') {
-			clickMode = null
-			document.getElementById('set-origin-btn').classList.remove('active')
-			document.getElementById('map').classList.remove('map-click-cursor')
-		} else {
-			clickMode = 'origin'
-			document.getElementById('set-origin-btn').classList.add('active')
-			document
-				.getElementById('set-destination-btn')
-				.classList.remove('active')
-			document.getElementById('map').classList.add('map-click-cursor')
-		}
+		setClickMode(clickMode === 'origin' ? null : 'origin')
 	})
 
 	document
 		.getElementById('set-destination-btn')
 		.addEventListener('click', () => {
-			if (clickMode === 'destination') {
-				clickMode = null
-				document
-					.getElementById('set-destination-btn')
-					.classList.remove('active')
-				document
-					.getElementById('map')
-					.classList.remove('map-click-cursor')
-			} else {
-				clickMode = 'destination'
-				document
-					.getElementById('set-destination-btn')
-					.classList.add('active')
-				document
-					.getElementById('set-origin-btn')
-					.classList.remove('active')
-				document.getElementById('map').classList.add('map-click-cursor')
-			}
+			setClickMode(clickMode === 'destination' ? null : 'destination')
 		})
 
 	function createMarkerIcon(variant) {
@@ -66,9 +53,7 @@ export function initRouting({ map, themeColors }) {
 			originMarker = L.marker([e.latlng.lat, e.latlng.lng], {
 				icon: createMarkerIcon('origin'),
 			}).addTo(map)
-			clickMode = null
-			document.getElementById('set-origin-btn').classList.remove('active')
-			document.getElementById('map').classList.remove('map-click-cursor')
+			setClickMode(null)
 		} else if (clickMode === 'destination') {
 			document.getElementById('end-lat').value = lat
 			document.getElementById('end-lng').value = lng
@@ -76,11 +61,7 @@ export function initRouting({ map, themeColors }) {
 			destinationMarker = L.marker([e.latlng.lat, e.latlng.lng], {
 				icon: createMarkerIcon('destination'),
 			}).addTo(map)
-			clickMode = null
-			document
-				.getElementById('set-destination-btn')
-				.classList.remove('active')
-			document.getElementById('map').classList.remove('map-click-cursor')
+			setClickMode(null)
 		}
 	})
 

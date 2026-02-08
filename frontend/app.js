@@ -22,7 +22,14 @@ const clusters = initClusters({
 	onBackendError: showBackendError,
 })
 
-initRouting({ map, themeColors })
+initRouting({
+	map,
+	themeColors,
+	setOverlayInteractivity: (enabled) => {
+		barriers.setInteractivityEnabled(enabled)
+		clusters.setInteractivityEnabled(enabled)
+	},
+})
 
 const analytics = initAnalytics({ severityColor, cssVar, themeColors })
 

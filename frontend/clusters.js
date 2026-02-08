@@ -6,6 +6,8 @@ export function initClusters({
 }) {
 	const heatmapGroup = L.layerGroup()
 	const clustersLayer = L.layerGroup()
+	const clusterMarkers = []
+	let interactivityEnabled = true
 	const DEFAULT_MAP_CENTER = [47.6062, -122.3321]
 	const DEFAULT_MAP_ZOOM = 13
 
@@ -18,7 +20,11 @@ export function initClusters({
 			map.setView(center, zoom)
 
 			const heatmapLayer = L.heatLayer(
-				heatmap_data.map(([lat, lng, severity]) => [lat, lng, severity]),
+				heatmap_data.map(([lat, lng, severity]) => [
+					lat,
+					lng,
+					severity,
+				]),
 				{
 					radius: 6,
 					blur: 10,
@@ -48,15 +54,17 @@ export function initClusters({
 					</div>`
 
 				cluster.points.forEach((pt) => {
-					L.circleMarker([pt.lat, pt.lng], {
+					const marker = L.circleMarker([pt.lat, pt.lng], {
 						radius: 2,
 						color: clusterColor,
 						fillColor: clusterColor,
 						fillOpacity: 0.7,
 						weight: 1,
+						interactive: interactivityEnabled,
 					})
 						.bindPopup(popupContent)
 						.addTo(clustersLayer)
+					clusterMarkers.push(marker)
 				})
 			})
 
@@ -67,5 +75,14 @@ export function initClusters({
 			onBackendError()
 		})
 
-	return { heatmapGroup, clustersLayer }
+	function setInteractivityEnabled(enabled) {
+		if (interactivityEnabled === enabled) return
+		interactivityEnabled = enabled
+		for (let i = 0; i < clusterMarkers.length; i++) {
+			clusterMarkers[i].options.interactive = interactivityEnabled
+		}
+		if (!enabled) map.closePopup()
+	}
+
+	return { heatmapGroup, clustersLayer, setInteractivityEnabled }
 }

@@ -2,6 +2,7 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 	let allBarriers = []
 	let allBarrierMarkers = []
 	let renderToken = 0
+	let interactivityEnabled = true
 
 	const barriersLayer = L.layerGroup().addTo(map)
 	const barrierRenderer = L.canvas({ padding: 0.5 })
@@ -63,11 +64,22 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 	function setMarkerVisibility(markerObj, visible) {
 		if (markerObj.visible === visible) return
 		markerObj.visible = visible
-		markerObj.marker.options.interactive = visible
+		markerObj.marker.options.interactive = visible && interactivityEnabled
 		markerObj.marker.setStyle({
 			opacity: visible ? 1 : 0,
 			fillOpacity: visible ? 0.7 : 0,
 		})
+	}
+
+	function setInteractivityEnabled(enabled) {
+		if (interactivityEnabled === enabled) return
+		interactivityEnabled = enabled
+		for (let i = 0; i < allBarrierMarkers.length; i++) {
+			const markerObj = allBarrierMarkers[i]
+			markerObj.marker.options.interactive =
+				markerObj.visible && interactivityEnabled
+		}
+		if (!enabled) map.closePopup()
 	}
 
 	function applyFilters() {
@@ -122,7 +134,9 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 	document.querySelectorAll('[data-type]').forEach((cb) => {
 		cb.addEventListener('change', scheduleApplyFilters)
 	})
-	document.getElementById('hide-temp').addEventListener('change', scheduleApplyFilters)
+	document
+		.getElementById('hide-temp')
+		.addEventListener('change', scheduleApplyFilters)
 
 	fetch('http://localhost:5001/api/barriers')
 		.then((r) => r.json())
@@ -150,5 +164,6 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 	return {
 		barriersLayer,
 		applyFilters,
+		setInteractivityEnabled,
 	}
 }
