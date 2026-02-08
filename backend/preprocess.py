@@ -5,11 +5,12 @@ Loads raw data, builds network graph with accessibility costs,
 and saves preprocessed data structures to disk for fast server startup.
 """
 
+from pathlib import Path
 import osmnx as ox
 import pandas as pd
 import pickle
+from copy import deepcopy
 from scipy.spatial import cKDTree
-from pathlib import Path
 import sys
 
 # Add algorithms to path
@@ -44,21 +45,45 @@ def main():
     barrier_tree = cKDTree(barrier_coords)
     print(f"   Built spatial index with {len(barrier_coords):,} points")
 
-    # Load Seattle pedestrian network
-    print("\n3. Fetching Seattle pedestrian network from OpenStreetMap...")
-    print("   (This may take 1-2 minutes on first run, then cached)")
+    # Load Seattle pedestrian network (cached as raw .pkl to avoid re-downloading)
+    raw_graph_path = DATA_DIR / 'network_raw.pkl'
+    raw_graph_proj_path = DATA_DIR / 'network_raw_proj.pkl'
 
-    G = ox.graph_from_place(
-        "Seattle, Washington, USA",
-        network_type='walk',
-        simplify=True
-    )
-    print(f"   Loaded network: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
+    if raw_graph_path.exists() and raw_graph_proj_path.exists():
+        print("\n3. Loading cached pedestrian network from disk...")
+        with open(raw_graph_path, 'rb') as f:
+            G = pickle.load(f)
+        print(f"   Loaded network: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
 
-    # Project graph
-    print("\n4. Projecting graph to UTM...")
-    G_proj = ox.project_graph(G)
-    print("   Graph projected")
+        print("\n4. Loading cached projected graph from disk...")
+        with open(raw_graph_proj_path, 'rb') as f:
+            G_proj = pickle.load(f)
+        print("   Loaded projected graph")
+    else:
+        print("\n3. Fetching Seattle pedestrian network from OpenStreetMap...")
+        print("   (This will be cached locally for future runs)")
+        G = ox.graph_from_place(
+            "Seattle, Washington, USA",
+            network_type='walk',
+            simplify=True
+        )
+        print(f"   Loaded network: {len(G.nodes):,} nodes, {len(G.edges):,} edges")
+
+        print("\n4. Projecting graph to UTM...")
+        G_proj = ox.project_graph(G)
+        print("   Graph projected")
+
+        # Cache raw network graphs (before edge costs are added)
+        print("   Caching raw network to disk...")
+        with open(raw_graph_path, 'wb') as f:
+            pickle.dump(G, f)
+        with open(raw_graph_proj_path, 'wb') as f:
+            pickle.dump(G_proj, f)
+        print(f"   ✓ Cached to {raw_graph_path.name} and {raw_graph_proj_path.name}")
+
+    # Deep copy so edge cost calculation doesn't mutate the cached objects
+    G = deepcopy(G)
+    G_proj = deepcopy(G_proj)
 
     # Calculate edge accessibility costs
     print("\n5. Calculating accessibility costs for all edges...")
