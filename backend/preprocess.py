@@ -9,6 +9,7 @@ from pathlib import Path
 import osmnx as ox
 import pandas as pd
 import pickle
+import numpy as np
 from copy import deepcopy
 from scipy.spatial import cKDTree
 import sys
@@ -48,9 +49,17 @@ def main():
     print(f"   ✓ Generated {len(clusters_data['clusters'])} clusters")
     print(f"   ✓ Saved clusters to {DATA_DIR / 'clusters.pkl'}")
 
-    # Build spatial index
+    # Build spatial index (scale lon by cos(lat) so Euclidean ≈ real distance)
     print("\n3. Building spatial index for barriers...")
-    barrier_coords = barriers_df[['lat', 'lon']].values
+    mean_lat = barriers_df['lat'].mean()
+    cos_lat = np.cos(np.radians(mean_lat))
+    CONFIG['cos_lat'] = cos_lat
+    print(f"   Latitude correction: cos({mean_lat:.1f}°) = {cos_lat:.4f}")
+
+    barrier_coords = np.column_stack([
+        barriers_df['lat'].values,
+        barriers_df['lon'].values * cos_lat
+    ])
     barrier_tree = cKDTree(barrier_coords)
     print(f"   Built spatial index with {len(barrier_coords):,} points")
 

@@ -128,6 +128,7 @@ class AccessibilityRouter:
         influence_radius = config['barrier_influence_radius']
         severity_weight = config['severity_weight']
         meters_per_degree = config['meters_per_degree']
+        cos_lat = config['cos_lat']
 
         print(f"Calculating accessibility costs for {len(graph_proj.edges):,} edges...")
 
@@ -141,10 +142,10 @@ class AccessibilityRouter:
             mid_lat = (u_lat + v_lat) / 2
             mid_lng = (u_lng + v_lng) / 2
 
-            # Find nearby barriers
+            # Find nearby barriers (query with scaled lon to match tree)
             radius_degrees = influence_radius / meters_per_degree
             nearby_indices = barrier_tree.query_ball_point(
-                [mid_lat, mid_lng],
+                [mid_lat, mid_lng * cos_lat],
                 radius_degrees
             )
 
@@ -154,11 +155,10 @@ class AccessibilityRouter:
                 barrier_cost = 0
 
                 for _, barrier in nearby_barriers.iterrows():
-                    # Simple distance calculation
-                    dist = np.sqrt(
-                        (barrier['lat'] - mid_lat)**2 +
-                        (barrier['lon'] - mid_lng)**2
-                    ) * meters_per_degree
+                    # Equirectangular distance with cos(lat) correction
+                    dlat = barrier['lat'] - mid_lat
+                    dlon = (barrier['lon'] - mid_lng) * cos_lat
+                    dist = np.sqrt(dlat**2 + dlon**2) * meters_per_degree
 
                     if dist < influence_radius:
                         # Inverse distance weighting
