@@ -18,10 +18,12 @@
 					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 					Oxygen, Ubuntu, Cantarell, sans-serif;
 			}
+
 			#map {
 				width: 100%;
 				height: 100vh;
 			}
+
 			.info-panel {
 				position: absolute;
 				top: 10px;
@@ -33,46 +35,23 @@
 				z-index: 1000;
 				max-width: 300px;
 			}
+
 			.info-panel h3 {
 				margin: 0 0 10px 0;
 				font-size: 16px;
 			}
+
 			.info-panel p {
 				margin: 5px 0;
 				font-size: 13px;
 				color: #666;
 			}
+
 			.loading {
 				text-align: center;
 				padding: 20px;
 			}
-			.legend {
-				position: absolute;
-				bottom: 30px;
-				right: 10px;
-				background: white;
-				padding: 10px 15px;
-				border-radius: 8px;
-				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-				z-index: 1000;
-			}
-			.legend h4 {
-				margin: 0 0 8px 0;
-				font-size: 13px;
-			}
-			.legend-item {
-				display: flex;
-				align-items: center;
-				margin: 4px 0;
-				font-size: 12px;
-			}
-			.legend-color {
-				width: 20px;
-				height: 20px;
-				border-radius: 50%;
-				margin-right: 8px;
-				border: 1px solid #333;
-			}
+
 			.routing-panel {
 				position: absolute;
 				top: 50%;
@@ -85,13 +64,16 @@
 				z-index: 1000;
 				max-width: 350px;
 			}
+
 			.routing-panel h3 {
 				margin: 0 0 10px 0;
 				font-size: 16px;
 			}
+
 			.routing-panel.hidden {
 				display: none;
 			}
+
 			.route-stats {
 				margin: 10px 0;
 				padding: 10px;
@@ -99,32 +81,38 @@
 				border-radius: 5px;
 				font-size: 13px;
 			}
+
 			.route-stats h4 {
 				margin: 0 0 5px 0;
 				font-size: 13px;
 				display: flex;
 				align-items: center;
 			}
+
 			.route-stats .color-box {
 				width: 16px;
 				height: 16px;
 				margin-right: 8px;
 				border: 2px solid #333;
 			}
+
 			.route-stats p {
 				margin: 3px 0;
 				font-size: 12px;
 				color: #555;
 			}
+
 			.comparison {
 				margin-top: 10px;
 				padding-top: 10px;
 				border-top: 1px solid #ddd;
 				font-size: 12px;
 			}
+
 			.comparison p {
 				margin: 3px 0;
 			}
+
 			.route-input-panel {
 				position: absolute;
 				top: 10px;
@@ -136,13 +124,16 @@
 				z-index: 1000;
 				max-width: 300px;
 			}
+
 			.route-input-panel h3 {
 				margin: 0 0 10px 0;
 				font-size: 16px;
 			}
+
 			.input-group {
 				margin: 10px 0;
 			}
+
 			.input-group label {
 				display: block;
 				font-size: 12px;
@@ -150,10 +141,12 @@
 				margin-bottom: 4px;
 				color: #333;
 			}
+
 			.input-row {
 				display: flex;
 				gap: 8px;
 			}
+
 			.input-row input {
 				flex: 1;
 				padding: 6px 8px;
@@ -161,10 +154,12 @@
 				border-radius: 4px;
 				font-size: 12px;
 			}
+
 			.input-row input:focus {
 				outline: none;
 				border-color: #3498db;
 			}
+
 			.btn {
 				width: 100%;
 				padding: 10px;
@@ -177,13 +172,16 @@
 				font-weight: bold;
 				margin-top: 10px;
 			}
+
 			.btn:hover {
 				background: #2980b9;
 			}
+
 			.btn:disabled {
 				background: #95a5a6;
 				cursor: not-allowed;
 			}
+
 			.status-message {
 				margin-top: 10px;
 				padding: 8px;
@@ -191,18 +189,22 @@
 				font-size: 12px;
 				text-align: center;
 			}
+
 			.status-message.loading {
 				background: #fff3cd;
 				color: #856404;
 			}
+
 			.status-message.success {
 				background: #d4edda;
 				color: #155724;
 			}
+
 			.status-message.error {
 				background: #f8d7da;
 				color: #721c24;
 			}
+
 			.examples {
 				margin-top: 10px;
 				padding: 8px;
@@ -210,20 +212,24 @@
 				border-radius: 4px;
 				font-size: 11px;
 			}
+
 			.examples p {
 				margin: 4px 0;
 				color: #666;
 			}
+
 			.examples a {
 				color: #3498db;
 				cursor: pointer;
 				text-decoration: underline;
 			}
+
 			.click-mode-buttons {
 				display: flex;
 				gap: 8px;
 				margin-bottom: 10px;
 			}
+
 			.click-mode-btn {
 				flex: 1;
 				padding: 8px;
@@ -236,39 +242,48 @@
 				font-weight: bold;
 				transition: all 0.2s;
 			}
+
 			.click-mode-btn:hover {
 				background: #d5dbdb;
 			}
+
 			.click-mode-btn.active {
 				background: #3498db;
 				color: white;
 				border-color: #2980b9;
 			}
+
 			.click-mode-btn.origin.active {
 				background: #e74c3c;
 				border-color: #c0392b;
 			}
+
 			.click-mode-btn.destination.active {
 				background: #27ae60;
 				border-color: #229954;
 			}
+
 			.map-click-cursor {
 				cursor: crosshair !important;
 			}
+
 			.slider-group {
 				margin: 15px 0;
 			}
+
 			.slider-group label {
 				display: block;
 				margin-bottom: 8px;
 				font-weight: bold;
 				color: #2c3e50;
 			}
+
 			.slider-container {
 				display: flex;
 				align-items: center;
 				gap: 10px;
 			}
+
 			.slider {
 				flex: 1;
 				-webkit-appearance: none;
@@ -278,6 +293,7 @@
 				background: linear-gradient(to right, #3498db 0%, #2ecc71 100%);
 				outline: none;
 			}
+
 			.slider::-webkit-slider-thumb {
 				-webkit-appearance: none;
 				appearance: none;
@@ -287,8 +303,9 @@
 				background: #2c3e50;
 				cursor: pointer;
 				border: 2px solid white;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 			}
+
 			.slider::-moz-range-thumb {
 				width: 18px;
 				height: 18px;
@@ -296,8 +313,9 @@
 				background: #2c3e50;
 				cursor: pointer;
 				border: 2px solid white;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 			}
+
 			.slider-value {
 				min-width: 100px;
 				font-size: 12px;
@@ -306,6 +324,7 @@
 			}
 		</style>
 	</head>
+
 	<body>
 		<div id="map"></div>
 		<div class="info-panel">
@@ -313,7 +332,7 @@
 			<p>Top 30 hotspots identified by cluster analysis</p>
 			<p>
 				<strong>Toggle layers</strong> using the control in the
-				top-right
+				bottom-right
 			</p>
 			<p><strong>Click any point</strong> for detailed breakdown</p>
 		</div>
@@ -321,37 +340,86 @@
 		<div id="routing-panel" class="routing-panel hidden">
 			<h3>🗺️ Route Comparison</h3>
 			<div id="route-content">
-				<p style="color: #666; font-size: 13px;">Loading routes...</p>
+				<p style="color: #666; font-size: 13px">Loading routes...</p>
 			</div>
 		</div>
 
 		<div class="route-input-panel">
 			<h3>📍 Calculate Route</h3>
 			<div class="click-mode-buttons">
-				<button id="set-origin-btn" class="click-mode-btn origin">📍 Click for Origin</button>
-				<button id="set-destination-btn" class="click-mode-btn destination">🎯 Click for Destination</button>
+				<button id="set-origin-btn" class="click-mode-btn origin">
+					📍 Click for Origin
+				</button>
+				<button
+					id="set-destination-btn"
+					class="click-mode-btn destination"
+				>
+					🎯 Click for Destination
+				</button>
 			</div>
 			<div class="input-group">
 				<label>Origin</label>
 				<div class="input-row">
-					<input type="number" id="start-lat" placeholder="Lat" step="0.0001" value="47.6062">
-					<input type="number" id="start-lng" placeholder="Lng" step="0.0001" value="-122.3321">
+					<input
+						type="number"
+						id="start-lat"
+						placeholder="Lat"
+						step="0.0001"
+						value="47.6062"
+					/>
+					<input
+						type="number"
+						id="start-lng"
+						placeholder="Lng"
+						step="0.0001"
+						value="-122.3321"
+					/>
 				</div>
 			</div>
 			<div class="input-group">
 				<label>Destination</label>
 				<div class="input-row">
-					<input type="number" id="end-lat" placeholder="Lat" step="0.0001" value="47.6205">
-					<input type="number" id="end-lng" placeholder="Lng" step="0.0001" value="-122.3493">
+					<input
+						type="number"
+						id="end-lat"
+						placeholder="Lat"
+						step="0.0001"
+						value="47.6205"
+					/>
+					<input
+						type="number"
+						id="end-lng"
+						placeholder="Lng"
+						step="0.0001"
+						value="-122.3493"
+					/>
 				</div>
 			</div>
 			<div class="slider-group">
 				<label>Accessibility Tolerance</label>
 				<div class="slider-container">
-					<input type="range" id="tolerance-slider" class="slider" min="0" max="100" value="50" step="1">
-					<span id="tolerance-value" class="slider-value">Balanced</span>
+					<input
+						type="range"
+						id="tolerance-slider"
+						class="slider"
+						min="0"
+						max="100"
+						value="50"
+						step="1"
+					/>
+					<span id="tolerance-value" class="slider-value"
+						>Balanced</span
+					>
 				</div>
-				<div style="display: flex; justify-content: space-between; font-size: 10px; color: #888; margin-top: 4px;">
+				<div
+					style="
+						display: flex;
+						justify-content: space-between;
+						font-size: 10px;
+						color: #888;
+						margin-top: 4px;
+					"
+				>
 					<span>🚫 Avoid barriers</span>
 					<span>🏃 Shortest path</span>
 				</div>
@@ -397,8 +465,10 @@
 			// Layer groups
 			const layers = {}
 			let heatmapLayer = null
+			let clustersLayer = L.layerGroup().addTo(map)
 			let accessibleRouteLayer = null
 			let standardRouteLayer = null
+			let layerControl = null
 
 			// Load cluster data from API and render visualizations
 			fetch('http://localhost:5001/api/clusters')
@@ -431,31 +501,31 @@
 					).addTo(map)
 					layers['Severity Heatmap'] = heatmapLayer
 
-					// Add each cluster as a layer group
+					// Add all clusters to a single layer group
 					clusters.forEach((cluster) => {
-						const layerGroup = L.layerGroup()
-
 						// Build popup content for the cluster
-						const typeBreakdownHTML = Object.entries(cluster.type_breakdown)
+						const typeBreakdownHTML = Object.entries(
+							cluster.type_breakdown,
+						)
 							.map(([type, count]) => `${type}: ${count}`)
 							.join('<br>')
 
 						const popupContent = `
-							<div style="min-width: 200px;">
-								<h4 style="margin:0 0 8px 0;">Hotspot #${cluster.rank}</h4>
-								<strong>${cluster.neighborhood}</strong><br>
-								<strong>Issues:</strong> ${cluster.count} (${cluster.n_types} types)<br>
-								<strong>Mean severity:</strong> ${cluster.mean_severity.toFixed(1)}<br>
-								<strong>Spread:</strong> ${cluster.spread_m.toFixed(0)}m<br>
-								<strong>Top type:</strong> ${cluster.top_type}<br>
-								<div style="margin-top:8px;padding-top:8px;border-top:1px solid #ddd;">
-									<strong>Breakdown:</strong><br>
-									${typeBreakdownHTML}
-								</div>
-							</div>
-						`
+                            <div style="min-width: 200px;">
+                                <h4 style="margin:0 0 8px 0;">Hotspot #${cluster.rank}</h4>
+                                <strong>${cluster.neighborhood}</strong><br>
+                                <strong>Issues:</strong> ${cluster.count} (${cluster.n_types} types)<br>
+                                <strong>Mean severity:</strong> ${cluster.mean_severity.toFixed(1)}<br>
+                                <strong>Spread:</strong> ${cluster.spread_m.toFixed(0)}m<br>
+                                <strong>Top type:</strong> ${cluster.top_type}<br>
+                                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ddd;">
+                                    <strong>Breakdown:</strong><br>
+                                    ${typeBreakdownHTML}
+                                </div>
+                            </div>
+                        `
 
-						// Add all points in the cluster with popup
+						// Add all points in the cluster to shared layer group
 						cluster.points.forEach((pt) => {
 							const marker = L.circleMarker([pt.lat, pt.lng], {
 								radius: 2,
@@ -465,21 +535,22 @@
 								weight: 1,
 							})
 							marker.bindPopup(popupContent)
-							marker.addTo(layerGroup)
+							marker.addTo(clustersLayer)
 						})
-
-						// Add all clusters to map by default
-						layerGroup.addTo(map)
-
-						layers[cluster.name] = layerGroup
 					})
+					layers['Accessibility Clusters'] = clustersLayer
 
-					// Add layer control
-					L.control
-						.layers(null, layers, { collapsed: false })
+					// Add layer control in bottom-right
+					layerControl = L.control
+						.layers(null, layers, {
+							collapsed: false,
+							position: 'bottomright',
+						})
 						.addTo(map)
 
-					console.log(`Loaded ${clusters.length} clusters with ${heatmap_data.length} severity points`)
+					console.log(
+						`Loaded ${clusters.length} clusters with ${heatmap_data.length} severity points`,
+					)
 				})
 				.catch((err) => {
 					console.error('Error loading clusters:', err)
@@ -489,12 +560,12 @@
 					errorDiv.style.cssText =
 						'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:500px;z-index:10000;font-family:sans-serif;'
 					errorDiv.innerHTML = `
-						<h3 style="margin:0 0 15px 0;color:#d32f2f;">⚠️ Cannot Load Cluster Data</h3>
-						<p style="margin:10px 0;">Failed to connect to the routing API.</p>
-						<p style="margin:10px 0;"><strong>Solution:</strong> Start the backend server:</p>
-						<pre style="background:#f5f5f5;padding:10px;border-radius:5px;overflow-x:auto;">python3 backend/app.py</pre>
-						<p style="margin:10px 0;font-size:13px;color:#666;">The server should be running on <strong>http://localhost:5001</strong></p>
-					`
+                        <h3 style="margin:0 0 15px 0;color:#d32f2f;">⚠️ Cannot Load Cluster Data</h3>
+                        <p style="margin:10px 0;">Failed to connect to the routing API.</p>
+                        <p style="margin:10px 0;"><strong>Solution:</strong> Start the backend server:</p>
+                        <pre style="background:#f5f5f5;padding:10px;border-radius:5px;overflow-x:auto;">python3 backend/app.py</pre>
+                        <p style="margin:10px 0;font-size:13px;color:#666;">The server should be running on <strong>http://localhost:5001</strong></p>
+                    `
 					document.body.appendChild(errorDiv)
 				})
 
@@ -521,31 +592,55 @@
 			})
 
 			// Click-to-set mode handlers
-			document.getElementById('set-origin-btn').addEventListener('click', () => {
-				if (clickMode === 'origin') {
-					clickMode = null
-					document.getElementById('set-origin-btn').classList.remove('active')
-					document.getElementById('map').classList.remove('map-click-cursor')
-				} else {
-					clickMode = 'origin'
-					document.getElementById('set-origin-btn').classList.add('active')
-					document.getElementById('set-destination-btn').classList.remove('active')
-					document.getElementById('map').classList.add('map-click-cursor')
-				}
-			})
+			document
+				.getElementById('set-origin-btn')
+				.addEventListener('click', () => {
+					if (clickMode === 'origin') {
+						clickMode = null
+						document
+							.getElementById('set-origin-btn')
+							.classList.remove('active')
+						document
+							.getElementById('map')
+							.classList.remove('map-click-cursor')
+					} else {
+						clickMode = 'origin'
+						document
+							.getElementById('set-origin-btn')
+							.classList.add('active')
+						document
+							.getElementById('set-destination-btn')
+							.classList.remove('active')
+						document
+							.getElementById('map')
+							.classList.add('map-click-cursor')
+					}
+				})
 
-			document.getElementById('set-destination-btn').addEventListener('click', () => {
-				if (clickMode === 'destination') {
-					clickMode = null
-					document.getElementById('set-destination-btn').classList.remove('active')
-					document.getElementById('map').classList.remove('map-click-cursor')
-				} else {
-					clickMode = 'destination'
-					document.getElementById('set-destination-btn').classList.add('active')
-					document.getElementById('set-origin-btn').classList.remove('active')
-					document.getElementById('map').classList.add('map-click-cursor')
-				}
-			})
+			document
+				.getElementById('set-destination-btn')
+				.addEventListener('click', () => {
+					if (clickMode === 'destination') {
+						clickMode = null
+						document
+							.getElementById('set-destination-btn')
+							.classList.remove('active')
+						document
+							.getElementById('map')
+							.classList.remove('map-click-cursor')
+					} else {
+						clickMode = 'destination'
+						document
+							.getElementById('set-destination-btn')
+							.classList.add('active')
+						document
+							.getElementById('set-origin-btn')
+							.classList.remove('active')
+						document
+							.getElementById('map')
+							.classList.add('map-click-cursor')
+					}
+				})
 
 			// Map click handler
 			map.on('click', (e) => {
@@ -567,14 +662,18 @@
 							className: 'custom-marker',
 							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
-							iconAnchor: [10, 10]
-						})
+							iconAnchor: [10, 10],
+						}),
 					}).addTo(map)
 
 					// Deactivate click mode
 					clickMode = null
-					document.getElementById('set-origin-btn').classList.remove('active')
-					document.getElementById('map').classList.remove('map-click-cursor')
+					document
+						.getElementById('set-origin-btn')
+						.classList.remove('active')
+					document
+						.getElementById('map')
+						.classList.remove('map-click-cursor')
 				} else if (clickMode === 'destination') {
 					document.getElementById('end-lat').value = lat
 					document.getElementById('end-lng').value = lng
@@ -588,14 +687,18 @@
 							className: 'custom-marker',
 							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
-							iconAnchor: [10, 10]
-						})
+							iconAnchor: [10, 10],
+						}),
 					}).addTo(map)
 
 					// Deactivate click mode
 					clickMode = null
-					document.getElementById('set-destination-btn').classList.remove('active')
-					document.getElementById('map').classList.remove('map-click-cursor')
+					document
+						.getElementById('set-destination-btn')
+						.classList.remove('active')
+					document
+						.getElementById('map')
+						.classList.remove('map-click-cursor')
 				}
 			})
 
@@ -617,10 +720,18 @@
 			}
 
 			function updateMarkers() {
-				const startLat = parseFloat(document.getElementById('start-lat').value)
-				const startLng = parseFloat(document.getElementById('start-lng').value)
-				const endLat = parseFloat(document.getElementById('end-lat').value)
-				const endLng = parseFloat(document.getElementById('end-lng').value)
+				const startLat = parseFloat(
+					document.getElementById('start-lat').value,
+				)
+				const startLng = parseFloat(
+					document.getElementById('start-lng').value,
+				)
+				const endLat = parseFloat(
+					document.getElementById('end-lat').value,
+				)
+				const endLng = parseFloat(
+					document.getElementById('end-lng').value,
+				)
 
 				if (!isNaN(startLat) && !isNaN(startLng)) {
 					if (originMarker) map.removeLayer(originMarker)
@@ -629,8 +740,8 @@
 							className: 'custom-marker',
 							html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
-							iconAnchor: [10, 10]
-						})
+							iconAnchor: [10, 10],
+						}),
 					}).addTo(map)
 				}
 
@@ -641,8 +752,8 @@
 							className: 'custom-marker',
 							html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
 							iconSize: [20, 20],
-							iconAnchor: [10, 10]
-						})
+							iconAnchor: [10, 10],
+						}),
 					}).addTo(map)
 				}
 			}
@@ -716,26 +827,40 @@
 						// Update markers to show snapped positions
 						if (data.snapped_start) {
 							if (originMarker) map.removeLayer(originMarker)
-							originMarker = L.marker([data.snapped_start.lat, data.snapped_start.lng], {
-								icon: L.divIcon({
-									className: 'custom-marker',
-									html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-									iconSize: [20, 20],
-									iconAnchor: [10, 10]
-								})
-							}).addTo(map).bindPopup('Route Start (snapped to network)')
+							originMarker = L.marker(
+								[
+									data.snapped_start.lat,
+									data.snapped_start.lng,
+								],
+								{
+									icon: L.divIcon({
+										className: 'custom-marker',
+										html: '<div style="background: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+										iconSize: [20, 20],
+										iconAnchor: [10, 10],
+									}),
+								},
+							)
+								.addTo(map)
+								.bindPopup('Route Start (snapped to network)')
 						}
 
 						if (data.snapped_end) {
-							if (destinationMarker) map.removeLayer(destinationMarker)
-							destinationMarker = L.marker([data.snapped_end.lat, data.snapped_end.lng], {
-								icon: L.divIcon({
-									className: 'custom-marker',
-									html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-									iconSize: [20, 20],
-									iconAnchor: [10, 10]
-								})
-							}).addTo(map).bindPopup('Route End (snapped to network)')
+							if (destinationMarker)
+								map.removeLayer(destinationMarker)
+							destinationMarker = L.marker(
+								[data.snapped_end.lat, data.snapped_end.lng],
+								{
+									icon: L.divIcon({
+										className: 'custom-marker',
+										html: '<div style="background: #27ae60; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+										iconSize: [20, 20],
+										iconAnchor: [10, 10],
+									}),
+								},
+							)
+								.addTo(map)
+								.bindPopup('Route End (snapped to network)')
 						}
 
 						// Clear existing route layers
@@ -773,11 +898,14 @@
 						layers['🔵 Standard Route'] = standardRouteLayer
 
 						// Recreate layer control
-						document
-							.querySelector('.leaflet-control-layers')
-							?.remove()
-						L.control
-							.layers(null, layers, { collapsed: false })
+						if (layerControl) {
+							layerControl.remove()
+						}
+						layerControl = L.control
+							.layers(null, layers, {
+								collapsed: false,
+								position: 'bottomright',
+							})
 							.addTo(map)
 
 						// Display statistics
