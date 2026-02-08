@@ -5,7 +5,6 @@ import { initClusters } from './clusters.js'
 import { initPriorities } from './priorities.js'
 import { initRouting } from './routing.js'
 import { initAnalytics } from './analytics.js'
-import { showBackendError } from './errors.js'
 import { cssVar, themeColors, severityColor } from './theme.js'
 
 const map = initMap()
@@ -15,7 +14,6 @@ const barriers = initBarriers({
 	map,
 	renderer: sharedRenderer,
 	severityColor,
-	onBackendError: showBackendError,
 })
 
 const clusters = initClusters({
@@ -23,7 +21,6 @@ const clusters = initClusters({
 	renderer: sharedRenderer,
 	themeColors,
 	severityColor,
-	onBackendError: showBackendError,
 })
 
 let setPrioritiesVisible = () => {}
@@ -31,7 +28,6 @@ let setPrioritiesVisible = () => {}
 const priorities = initPriorities({
 	map,
 	renderer: sharedRenderer,
-	onBackendError: showBackendError,
 	setPrioritiesVisible: (visible) => setPrioritiesVisible(visible),
 })
 

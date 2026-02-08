@@ -1,4 +1,4 @@
-import { apiFetch } from './config.js'
+import { loadGraph, calculateRoute } from './router.js'
 
 export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 	let clickMode = null
@@ -196,6 +196,15 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 		updateMarkers()
 	}
 
+	let graphReady = false
+	async function ensureGraph() {
+		if (!graphReady) {
+			showStatus('Loading graph (first time)...', 'loading')
+			await loadGraph()
+			graphReady = true
+		}
+	}
+
 	document
 		.getElementById('calculate-btn')
 		.addEventListener('click', async () => {
@@ -224,25 +233,18 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 			showStatus('Calculating routes...', 'loading')
 
 			try {
+				await ensureGraph()
+
 				const tolerance = parseInt(toleranceSlider.value)
 				const barrierWeight = (100 - tolerance) / 5
 
-				const response = await apiFetch('/api/calculate_route', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						start_lat: startLat,
-						start_lng: startLng,
-						end_lat: endLat,
-						end_lng: endLng,
-						barrier_weight: barrierWeight,
-					}),
-				})
-
-				if (!response.ok)
-					throw new Error(`Server error: ${response.statusText}`)
-
-				const data = await response.json()
+				const data = calculateRoute(
+					startLat,
+					startLng,
+					endLat,
+					endLng,
+					barrierWeight,
+				)
 
 				if (data.snapped_start) {
 					if (originMarker) map.removeLayer(originMarker)
@@ -325,7 +327,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 				showStatus('Routes calculated!', 'success')
 			} catch (error) {
 				console.error('Error calculating route:', error)
-				showStatus('Error: Make sure backend is reachable', 'error')
+				showStatus(`Error: ${error.message}`, 'error')
 			} finally {
 				btn.disabled = false
 				btn.textContent = 'Calculate Route'
@@ -370,7 +372,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
                         Accessible
                     </h4>
                     <p>Distance: ${stats.accessible_length.toFixed(0)} m</p>
-                    <p>Barrier cost: ${stats.accessible_barrier_cost.toFixed(1)}</p>
+                    <p>Total severity: ${stats.accessible_barrier_cost.toFixed(1)}</p>
                     <p>Barriers: ${stats.accessible_barrier_count || 0}</p>
                 </div>
                 <div class="route-stats">
@@ -379,19 +381,47 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
                         Standard
                     </h4>
                     <p>Distance: ${stats.standard_length.toFixed(0)} m</p>
-                    <p>Barrier cost: ${stats.standard_barrier_cost.toFixed(1)}</p>
+                    <p>Total severity: ${stats.standard_barrier_cost.toFixed(1)}</p>
                     <p>Barriers: ${stats.standard_barrier_count || 0}</p>
                 </div>
             </div>
             <div class="comparison">
                 <h4>Trade-off Analysis</h4>
                 <p>Extra distance: ${extraDistance.toFixed(0)} m (${extraPercent > 0 ? '+' : ''}${extraPercent}%)</p>
-                <p>Barrier reduction: ${barrierReduction}%</p>
+                <p>Severity reduction: ${barrierReduction}%</p>
                 <p>Barriers avoided: ${barrierCountDiff}</p>
             </div>`
 
 		resultsDiv.classList.remove('is-hidden')
 	}
+
+	document
+		.getElementById('clear-route-btn')
+		.addEventListener('click', () => {
+			if (window.accessibleRouteLayer) {
+				map.removeLayer(window.accessibleRouteLayer)
+				window.accessibleRouteLayer = null
+			}
+			if (window.standardRouteLayer) {
+				map.removeLayer(window.standardRouteLayer)
+				window.standardRouteLayer = null
+			}
+			if (originMarker) {
+				map.removeLayer(originMarker)
+				originMarker = null
+			}
+			if (destinationMarker) {
+				map.removeLayer(destinationMarker)
+				destinationMarker = null
+			}
+			document.getElementById('start-lat').value = ''
+			document.getElementById('start-lng').value = ''
+			document.getElementById('end-lat').value = ''
+			document.getElementById('end-lng').value = ''
+			document.getElementById('route-results').classList.add('is-hidden')
+			document.getElementById('status-message').textContent = ''
+			document.getElementById('status-message').className = ''
+		})
 
 	window.setExample1 = setExample1
 	window.setExample2 = setExample2

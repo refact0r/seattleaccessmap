@@ -1,6 +1,6 @@
-import { apiFetch } from './config.js'
+import { dataFetch } from './config.js'
 
-export function initBarriers({ map, renderer, severityColor, onBackendError }) {
+export function initBarriers({ map, renderer, severityColor }) {
 	let allBarriers = []
 	let allBarrierMarkers = []
 	let renderToken = 0
@@ -137,9 +137,20 @@ export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 		.getElementById('hide-temp')
 		.addEventListener('change', scheduleApplyFilters)
 
-	apiFetch('/api/barriers')
+	dataFetch('barriers.json')
 		.then((r) => r.json())
-		.then((barriers) => {
+		.then((raw) => {
+			const labels = raw.labels
+			const tempSet = new Set(raw.t)
+			const barriers = raw.lat.map((lat, i) => ({
+				lat,
+				lng: raw.lng[i],
+				severity: raw.s[i],
+				adjusted_severity: raw.as[i],
+				label: labels[raw.l[i]],
+				is_temporary: tempSet.has(i),
+			}))
+
 			allBarriers = barriers
 			document.getElementById('stat-total').textContent =
 				barriers.length.toLocaleString()
@@ -156,7 +167,6 @@ export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 		})
 		.catch((err) => {
 			console.error('Error loading barriers:', err)
-			onBackendError()
 		})
 
 	return {

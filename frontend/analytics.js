@@ -1,4 +1,4 @@
-import { apiFetch } from './config.js'
+import { dataFetch } from './config.js'
 
 export function initAnalytics({ severityColor, cssVar, themeColors }) {
 	let analyticsLoaded = false
@@ -182,7 +182,7 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 		const container = document.getElementById('analytics-container')
 
 		try {
-			const response = await apiFetch('/api/analytics')
+			const response = await dataFetch('analytics.json')
 			if (!response.ok) throw new Error('Failed to load analytics')
 			const data = await response.json()
 
@@ -231,7 +231,7 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 				<div class="analytics-error">
 					<p><strong>Failed to load analytics</strong></p>
 					<p class="analytics-error-subtext">
-						Make sure the backend is running with the /api/analytics endpoint.
+						Make sure analytics.json exists in the data directory.
 					</p>
 				</div>`
 		}

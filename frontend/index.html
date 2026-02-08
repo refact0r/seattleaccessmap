@@ -435,7 +435,9 @@
 
 					<div class="panel-section">
 						<h3>Fix Priorities</h3>
-						<div id="priorities-list" class="priorities-list"></div>
+						<div class="priorities-list-wrapper">
+							<div id="priorities-list" class="priorities-list"></div>
+						</div>
 					</div>
 				</div>
 
@@ -525,9 +527,14 @@
 								<span>Fastest route</span>
 							</div>
 						</div>
-						<button id="calculate-btn" class="btn-primary">
-							Calculate Route
-						</button>
+						<div class="route-actions">
+							<button id="calculate-btn" class="btn-primary">
+								Calculate Route
+							</button>
+							<button id="clear-route-btn" class="btn-secondary">
+								Clear
+							</button>
+						</div>
 						<div id="status-message"></div>
 					</div>
 

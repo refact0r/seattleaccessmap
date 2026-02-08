@@ -1,12 +1,7 @@
-import { apiFetch } from './config.js'
+import { dataFetch } from './config.js'
 import { cssVar } from './theme.js'
 
-export function initPriorities({
-	map,
-	renderer,
-	onBackendError,
-	setPrioritiesVisible,
-}) {
+export function initPriorities({ map, renderer, setPrioritiesVisible }) {
 	const prioritiesLayer = L.layerGroup()
 	const priorityMarkers = []
 	let interactivityEnabled = true
@@ -91,7 +86,7 @@ export function initPriorities({
 		return `rgb(${r},${g},${b})`
 	}
 
-	apiFetch('/api/fix_priorities')
+	dataFetch('fix_priorities.json')
 		.then((r) => r.json())
 		.then((data) => {
 			if (data.error) {
@@ -172,7 +167,6 @@ export function initPriorities({
 		})
 		.catch((err) => {
 			console.error('Error loading fix priorities:', err)
-			onBackendError()
 		})
 
 	function setInteractivityEnabled(enabled) {

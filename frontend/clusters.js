@@ -1,12 +1,6 @@
-import { apiFetch } from './config.js'
+import { dataFetch } from './config.js'
 
-export function initClusters({
-	map,
-	renderer,
-	themeColors,
-	severityColor,
-	onBackendError,
-}) {
+export function initClusters({ map, renderer, themeColors, severityColor }) {
 	const heatmapGroup = L.layerGroup()
 	const clustersLayer = L.layerGroup()
 	const clusterMarkers = []
@@ -14,7 +8,7 @@ export function initClusters({
 	const DEFAULT_MAP_CENTER = [47.6062, -122.3321]
 	const DEFAULT_MAP_ZOOM = 13
 
-	apiFetch('/api/clusters')
+	dataFetch('clusters.json')
 		.then((r) => r.json())
 		.then((data) => {
 			const { config, clusters, heatmap_data } = data
@@ -93,7 +87,6 @@ export function initClusters({
 		})
 		.catch((err) => {
 			console.error('Error loading clusters:', err)
-			onBackendError()
 		})
 
 	function setInteractivityEnabled(enabled) {
