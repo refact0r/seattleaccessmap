@@ -29,7 +29,7 @@ export function initPriorities({
 		}
 		if (trimmed.startsWith('hsl')) {
 			const nums = trimmed.match(/-?\d+(?:\.\d+)?/g) || []
-			const h = ((parseFloat(nums[0]) || 0) % 360 + 360) % 360
+			const h = (((parseFloat(nums[0]) || 0) % 360) + 360) % 360
 			const s = Math.max(0, Math.min(100, parseFloat(nums[1]) || 0))
 			const l = Math.max(0, Math.min(100, parseFloat(nums[2]) || 0))
 			const c = (1 - Math.abs(2 * (l / 100) - 1)) * (s / 100)
@@ -104,16 +104,15 @@ export function initPriorities({
 			const impacts = features
 				.map((f) => f.properties && f.properties.impact)
 				.filter((v) => typeof v === 'number' && !Number.isNaN(v))
-			const minImpact =
-				impacts.length > 0 ? Math.min(...impacts) : 0
-			const maxImpact =
-				impacts.length > 0 ? Math.max(...impacts) : 1
+			const minImpact = impacts.length > 0 ? Math.min(...impacts) : 0
+			const maxImpact = impacts.length > 0 ? Math.max(...impacts) : 1
 
 			features.forEach((feature) => {
 				const props = feature.properties
 				const [lng, lat] = feature.geometry.coordinates
 				const impact =
-					typeof props.impact === 'number' && !Number.isNaN(props.impact)
+					typeof props.impact === 'number' &&
+					!Number.isNaN(props.impact)
 						? props.impact
 						: minImpact
 				const color = impactColor(impact, minImpact, maxImpact)
