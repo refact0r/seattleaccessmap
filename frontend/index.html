@@ -56,10 +56,10 @@
 					</div>
 
 					<div class="panel-section">
-						<h3>Filter Barriers</h3>
+						<h3>Filter</h3>
 
 						<div class="filter-group">
-							<label>Barrier Types</label>
+							<label>Types</label>
 							<div class="checkbox-grid">
 								<label class="checkbox-item">
 									<input
@@ -139,23 +139,11 @@
 						<div class="filter-group">
 							<div class="toggle-row">
 								<label class="toggle-label"
-									>Hide temporary barriers</label
+									>Hide Temporary</label
 								>
-								<label class="toggle-switch">
-									<input type="checkbox" id="hide-temp" />
-									<span class="toggle-slider"></span>
-								</label>
+								<input type="checkbox" id="hide-temp" />
 							</div>
 						</div>
-					</div>
-
-					<div class="panel-section">
-						<h3>About</h3>
-						<p class="about-text">
-							Crowdsourced sidewalk accessibility data from
-							<strong>Project Sidewalk</strong>. ~80k observations
-							across 50 Seattle neighborhoods, rated by severity.
-						</p>
 					</div>
 				</div>
 
@@ -185,14 +173,14 @@
 									id="start-lat"
 									placeholder="Lat"
 									step="0.0001"
-									value="47.6062"
+									value="47.6551"
 								/>
 								<input
 									type="number"
 									id="start-lng"
 									placeholder="Lng"
 									step="0.0001"
-									value="-122.3321"
+									value="-122.3046"
 								/>
 							</div>
 						</div>
@@ -204,14 +192,14 @@
 									id="end-lat"
 									placeholder="Lat"
 									step="0.0001"
-									value="47.6205"
+									value="47.6305"
 								/>
 								<input
 									type="number"
 									id="end-lng"
 									placeholder="Lng"
 									step="0.0001"
-									value="-122.3493"
+									value="-122.3566"
 								/>
 							</div>
 						</div>
@@ -239,13 +227,11 @@
 									value="50"
 									step="1"
 								/>
-								<span id="tolerance-value" class="slider-value"
-									>Balanced</span
-								>
 							</div>
 							<div class="slider-labels">
-								<span>Avoid barriers</span>
-								<span>Shortest path</span>
+								<span>Max accessibility</span>
+								<span>Standard</span>
+								<span>Fastest route</span>
 							</div>
 						</div>
 						<button id="calculate-btn" class="btn-primary">
@@ -280,7 +266,7 @@
 
 				<!-- Severity Legend Overlay -->
 				<div class="map-overlay legend">
-					<strong class="legend-title">Adjusted Severity</strong>
+					<div class="legend-title">Adjusted Severity</div>
 					<div class="legend-row">
 						<span class="legend-min">0</span>
 						<div class="legend-bar"></div>
@@ -307,6 +293,5 @@
 		</div>
 
 		<script type="module" src="app.js"></script>
-
 	</body>
 </html>

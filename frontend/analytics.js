@@ -1,7 +1,7 @@
 export function initAnalytics({ severityColor, cssVar, themeColors }) {
 	let analyticsLoaded = false
 
-	const chartColors = themeColors.chartPalette
+	const chartColors = themeColors.chartPalette.slice().reverse()
 	const paletteFor = (count) => {
 		if (count <= chartColors.length) {
 			return chartColors.slice(0, count)
@@ -73,7 +73,7 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 				datasets: [
 					{
 						data: data.top_neighborhoods.values,
-						backgroundColor: cssVar('--chart-1'),
+						backgroundColor: cssVar('--chart-4'),
 						borderRadius: 4,
 					},
 				],
@@ -95,7 +95,7 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 				datasets: [
 					{
 						data: data.bottom_neighborhoods.values,
-						backgroundColor: cssVar('--chart-4'),
+						backgroundColor: cssVar('--chart-1'),
 						borderRadius: 4,
 					},
 				],
@@ -191,16 +191,16 @@ export function initAnalytics({ severityColor, cssVar, themeColors }) {
 					<canvas id="chart-type-severity"></canvas>
 				</div>
 				<div class="chart-card">
+					<h4>Severity Distribution</h4>
+					<canvas id="chart-severity-dist"></canvas>
+				</div>
+				<div class="chart-card">
 					<h4>Top 10 Neighborhoods by Barrier Count</h4>
 					<canvas id="chart-top-neighborhoods"></canvas>
 				</div>
 				<div class="chart-card">
 					<h4>Bottom 10 Neighborhoods by Barrier Count</h4>
 					<canvas id="chart-bottom-neighborhoods"></canvas>
-				</div>
-				<div class="chart-card">
-					<h4>Severity Distribution</h4>
-					<canvas id="chart-severity-dist"></canvas>
 				</div>
 				<div class="chart-card">
 					<h4>Neighborhood × Type Severity</h4>

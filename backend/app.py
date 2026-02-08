@@ -194,8 +194,8 @@ def get_analytics():
         'values': type_counts.values.tolist(),
     }
 
-    # 2. Mean adjusted severity by type
-    type_sev = df.groupby('label')['adjusted_severity'].mean().sort_values(ascending=False)
+    # 2. Mean raw severity by type
+    type_sev = df.groupby('label')['severity'].mean().sort_values(ascending=False)
     type_severity_data = {
         'labels': type_sev.index.tolist(),
         'values': [round(v, 2) for v in type_sev.values.tolist()],

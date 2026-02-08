@@ -18,6 +18,7 @@ const barriers = initBarriers({
 const clusters = initClusters({
 	map,
 	themeColors,
+	severityColor,
 	onBackendError: showBackendError,
 })
 

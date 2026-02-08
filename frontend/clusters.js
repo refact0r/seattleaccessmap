@@ -1,6 +1,7 @@
 export function initClusters({
 	map,
 	themeColors,
+	severityColor,
 	onBackendError,
 }) {
 	const heatmapGroup = L.layerGroup()
@@ -28,6 +29,7 @@ export function initClusters({
 			heatmapGroup.addLayer(heatmapLayer)
 
 			clusters.forEach((cluster) => {
+				const clusterColor = severityColor(cluster.mean_severity)
 				const typeBreakdownHTML = Object.entries(cluster.type_breakdown)
 					.map(([type, count]) => `${type}: ${count}`)
 					.join('<br>')
@@ -48,8 +50,8 @@ export function initClusters({
 				cluster.points.forEach((pt) => {
 					L.circleMarker([pt.lat, pt.lng], {
 						radius: 2,
-						color: cluster.color,
-						fillColor: cluster.color,
+						color: clusterColor,
+						fillColor: clusterColor,
 						fillOpacity: 0.7,
 						weight: 1,
 					})

@@ -1,7 +1,5 @@
 """
 HDBSCAN clustering analysis for accessibility barriers.
-
-Ported from archived/analysis.py to run on-demand in the backend.
 """
 
 import numpy as np
@@ -86,37 +84,11 @@ def generate_clusters(barriers_df, min_severity=3):
         spatial_spread_meters, include_groups=False
     )
 
-    # Calculate hotspot score: count × severity × type diversity
+    # Calculate hotspot score: count × mean severity
     cluster_stats["hotspot_score"] = (
-        cluster_stats["count"]
-        * cluster_stats["mean_severity"]
-        * (1 + 0.15 * (cluster_stats["n_types"] - 1))
+        cluster_stats["count"] * cluster_stats["mean_severity"]
     )
     cluster_stats = cluster_stats.sort_values("hotspot_score", ascending=False)
-
-    # Color palette for clusters
-    colors = [
-        "#e6194b",
-        "#3cb44b",
-        "#4363d8",
-        "#f58231",
-        "#911eb4",
-        "#42d4f4",
-        "#f032e6",
-        "#bfef45",
-        "#fabed4",
-        "#469990",
-        "#dcbeff",
-        "#9A6324",
-        "#800000",
-        "#aaffc3",
-        "#808000",
-        "#ffd8b1",
-        "#000075",
-        "#a9a9a9",
-        "#ffe119",
-        "#000000",
-    ]
 
     # Export cluster metadata
     clusters_export = []
@@ -140,7 +112,6 @@ def generate_clusters(barriers_df, min_severity=3):
             {
                 "rank": rank + 1,
                 "cluster_id": int(cid),
-                "color": colors[rank % len(colors)],
                 "name": f"#{rank+1}: {crow['top_neighborhood']} ({crow['top_type']})",
                 "neighborhood": crow["top_neighborhood"],
                 "top_type": crow["top_type"],
