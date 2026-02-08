@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessMapSeattle Writeup</title>
+</head>
+<body>
+
+    <h1>AccessMapSeattle: Data-Driven Accessible Routing for Seattle</h1>
+
+    <h2>Introduction</h2>
+
+    <p>In Seattle, sidewalk conditions are not equally accessible. People with mobility challenges (wheelchair users, parents with strollers, the elderly, etc.) often face challenges navigating inconsistent and inadequate sidewalk infrastructure. Obstacles like surface problems and the non-existence of curb ramps hinder mobility and are hostile to mobility users.</p>
+
+    <p>Project Sidewalk's Seattle dataset contains ~80,000 crowdsourced observations of sidewalk conditions across Seattle neighborhoods. We wanted to build a tool for both mobility users and the City of Seattle to figure out how to navigate the streets more safely.</p>
+
+    <p>We built a system that (1) reveals where the problems are, (2) routes users around them, and (3) informs the city which critical sidewalk arteries to prioritize fixing first.</p>
+
+    <h2>Dataset and Cleaning</h2>
+
+    <p>The Project Sidewalk dataset contains 6 barrier types: CurbRamp, NoCurbRamp, NoSidewalk, Obstacle, SurfaceProblem, and Other. Each record has coordinates, neighborhood, severity (1-5), and a temporary/permanent flag. Out of the 81,973 raw records, 79,722 point labels were kept after dropping rows with missing severity rankings to ensure the accuracy of data.</p>
+
+    <h3>Adjusted Severity Scale</h3>
+
+    <p>A key preprocessing decision was creating an adjusted severity scale (0-10). Raw severity 1-5 doesn't account for the fact that "severity 1 NoSidewalk" is far worse for a mobility user than "severity 1 CurbRamp," by our judgement. We defined per-type linear rescaling ranges based on real-world impact:</p>
+
+    <ul>
+        <li>NoSidewalk: 5-10 (always significant, even at low severity)</li>
+        <li>NoCurbRamp: 3-8 (missing ramp is always a real barrier)</li>
+        <li>CurbRamp: 0-5 (positive feature - ramp exists but may be degraded)</li>
+        <li>Obstacle: 2-7</li>
+        <li>SurfaceProblem: 1-6</li>
+    </ul>
+
+    <p>We believe this normalization makes cross-type comparisons meaningful and feeds directly into routing costs. Future extensions include performing HCI interviews for potential users to more accurately represent the needs of mobility users.</p>
+
+    <h2>Components</h2>
+
+    <h3>Interactive Barrier Map</h3>
+
+    <p>This view visualizes all ~80k barriers on an interactive Leaflet map. Users can filter by barrier type, severity range, and temporary/permanent status. Three overlay modes are available: individual barrier points (color-coded by severity), a severity heatmap, and HDBSCAN hotspot clusters. This lets anyone - residents, advocates, city planners — see the state of their neighborhood at a glance.</p>
+
+    <p>A key insight: barriers are not uniformly distributed. Some neighborhoods are dramatically worse than others.</p>
+
+    <h3>Accessibility-Aware Navigation</h3>
+
+    <p>We introduce a route-planning tool that finds a route between two points that minimizes accessibility barriers.</p>
+
+    <p>How it works:</p>
+    <ul>
+        <li>Built on the real Seattle pedestrian network from OpenStreetMap using OSMnx.</li>
+        <li>Each of the ~80k barriers is snapped to its nearest network edge using OSMnx spatial queries</li>
+        <li>Edge accessibility cost = sum of adjusted severity of all barriers on that edge</li>
+        <li>Modified Dijkstra's algorithm: edge weight = distance + barrier_weight * cost^1.5</li>
+        <li>The exponent (1.5) is intentional — it creates a smooth gradient of route alternatives rather than binary all-or-nothing switching</li>
+    </ul>
+
+    <p>The tolerance slider lets the user control how aggressively to avoid barriers. At the "avoid all barriers" end, the route takes longer detours to stay on clean sidewalks. At the "shortest path" end, barriers are ignored entirely. The middle range provides a balanced tradeoff between distance and accessibility.</p>
+
+    <p>The app always shows both the accessible route and the standard shortest route side-by-side, with stats including distance, barrier count, and barrier exposure.</p>
+
+    <h4>Who uses this?</h4>
+    <ul>
+        <li>A wheelchair user planning a trip to a new part of town</li>
+        <li>A caregiver mapping a safe walk for an elderly family member</li>
+        <li>Anyone who wants to understand "how much farther do I have to walk to avoid bad sidewalks?"</li>
+    </ul>
+
+    <h3>3. Analyze: Hotspot Clustering and Fix Prioritization</h3>
+
+    <h4>HDBSCAN Clustering</h4>
+
+    <p>We use HDBSCAN clustering on high-severity barriers, with density-based clustering using haversine distance on lat/lng coordinates. This identifies natural clusters of severe barriers (hotspots) without needing to pre-specify the number of clusters. Each cluster gets a hotspot score: count * mean_severity * type_diversity_bonus. This helps answer: "Where are the worst concentrated problem areas?"</p>
+
+    <h4>Fix Priority Ranking</h4>
+
+    <p>This addresses the question: "Where should the city spend money first?" We rank individual barriers by adjusted_severity * log(edge_usage), where edge usage is approximated via sampled shortest paths (a betweenness centrality approximation).</p>
+
+    <p>High-impact barriers are severe AND sit on heavily-trafficked paths. A severity-5 obstacle on a major pedestrian corridor matters more than the same obstacle on a dead-end alley. The top barriers are exported as GeoJSON for map overlay.</p>
+
+    <h4>Analytics Dashboard</h4>
+
+    <p>Built-in charts show barrier type distribution, severity distribution, top and bottom neighborhoods by barrier count, and a neighborhood-by-type severity matrix.</p>
+
+    <h2>Key Findings and Insights</h2>
+
+    <p>(Fill in with specific numbers from running the analysis — neighborhoods, top streets, cluster details)</p>
+
+    <ul>
+        <li>Distribution of barrier types across Seattle</li>
+        <li>Which neighborhoods have the highest barrier density vs. highest average severity (these are often different!)</li>
+        <li>The distance-vs-accessibility tradeoff: how much farther does an accessible route typically need to be?</li>
+        <li>Fix prioritization: which specific barriers, if fixed, would have the largest impact on the most people?</li>
+        <li>Relationship between barrier density and neighborhood characteristics</li>
+    </ul>
+
+    <h2>Technical Approach</h2>
+
+    <p>Stack: Python (Flask, OSMnx, NetworkX, pandas, scipy, HDBSCAN) backend with a vanilla HTML/JS + Leaflet frontend.</p>
+
+    <p>The preprocessing pipeline runs once: data cleaning, network graph construction, edge cost calculation, spatial indexing, and clustering. At runtime, the Flask API serves precomputed data and runs Dijkstra on demand.</p>
+
+    <h3>Design Decisions</h3>
+    <ul>
+        <li>Why adjusted severity instead of raw severity: cross-type fairness — a missing sidewalk at any severity is worse than a slightly degraded curb ramp</li>
+        <li>Why cost^1.5 exponent: produces a gradient of routes across the slider range, unlike a linear penalty which causes binary all-or-nothing switching</li>
+        <li>Why sampled betweenness for fix prioritization: full betweenness centrality is O(VE), infeasible for large graphs — sampling gives a good approximation</li>
+        <li>Why HDBSCAN over K-means: no need to specify k, handles irregular cluster shapes, and has built-in noise rejection</li>
+    </ul>
+
+    <h2>How End Users Interact with the Tool</h2>
+
+    <h3>Scenario 1: A wheelchair user going from UW campus to Capitol Hill</h3>
+    <p>Opens the app, clicks origin and destination on the map, adjusts the tolerance slider toward "avoid barriers." They see the accessible route (blue) vs. the shortest route (gray) — the accessible route adds some distance but avoids the worst barriers. They can zoom in on the route to see exactly which barriers are being avoided.</p>
+
+    <h3>Scenario 2: A city planner reviewing fix priorities</h3>
+    <p>Switches to the analytics view to see the worst neighborhoods. Enables the fix priority overlay to see which individual barriers are highest-impact. Uses this data to justify budget allocation for sidewalk repairs.</p>
+
+    <h3>Scenario 3: An accessibility advocate exploring neighborhood data</h3>
+    <p>Filters barriers by type (e.g., only NoCurbRamp) and severity range. Enables the hotspot cluster overlay to identify concentrated problem areas. Uses the findings to advocate for specific improvements at city council.</p>
+
+    <h2>Limitations and Future Work</h2>
+
+    <ul>
+        <li>Data is crowdsourced — coverage is uneven. Some neighborhoods are well-surveyed, others sparse. A low barrier count might mean good sidewalks OR poor survey coverage.</li>
+        <li>Data is a snapshot in time — temporary barriers change, new construction happens, repairs are made.</li>
+        <li>Routing uses the pedestrian network only — it doesn't account for elevation or hills, which is significant in Seattle.</li>
+        <li>Barrier snapping to the nearest edge is approximate — a barrier might be snapped to the wrong street in dense areas.</li>
+        <li>Future work: integrate elevation data, real-time barrier reporting, transit accessibility connections, and demographic/equity overlays (we have income data by neighborhood that could be incorporated).</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+
+    <p>Accessibility is a data problem as much as a policy problem. Crowdsourced data like Project Sidewalk makes it possible to quantify what was previously anecdotal.</p>
+
+    <p>Our tool bridges the gap between raw data and actionable use: explore the problem, route around it, and prioritize fixing it.</p>
+
+    <p>The tradeoff slider is the core UX insight: accessibility is not binary. People have different needs and tolerances, and the tool respects that.</p>
+
+</body>
+</html>
