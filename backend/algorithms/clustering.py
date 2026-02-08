@@ -31,10 +31,11 @@ def generate_clusters(barriers_df, min_severity=3):
     Returns:
         dict with 'config', 'clusters', and 'heatmap_data' keys
     """
-    # Filter to severe issues
+    # Use all barriers for heatmap, filter for clustering only
+    df_all = barriers_df.copy()
     df_severe = barriers_df[barriers_df["adjusted_severity"] >= min_severity].copy()
 
-    if len(df_severe) == 0:
+    if len(df_all) == 0:
         return {
             "config": {"center": [47.6062, -122.3321], "zoom_start": 12},
             "clusters": [],
@@ -62,7 +63,7 @@ def generate_clusters(barriers_df, min_severity=3):
                 "zoom_start": 12
             },
             "clusters": [],
-            "heatmap_data": df_severe[["lat", "lon", "adjusted_severity"]].values.tolist()
+            "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist()
         }
 
     # Calculate type breakdown per cluster
@@ -149,5 +150,5 @@ def generate_clusters(barriers_df, min_severity=3):
             "zoom_start": 12,
         },
         "clusters": clusters_export,
-        "heatmap_data": df_severe[["lat", "lon", "adjusted_severity"]].values.tolist()
+        "heatmap_data": df_all[["lat", "lon", "adjusted_severity"]].values.tolist()
     }

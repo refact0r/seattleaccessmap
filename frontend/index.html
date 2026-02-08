@@ -437,6 +437,7 @@
 			// Initialize map with zoom controls in bottom-left
 			const map = L.map('map', {
 				zoomControl: false,
+				preferCanvas: true,
 			})
 
 			// Add zoom control to bottom-left
@@ -466,9 +467,68 @@
 			const layers = {}
 			let heatmapLayer = null
 			let clustersLayer = L.layerGroup().addTo(map)
+			let barriersLayer = L.layerGroup()
 			let accessibleRouteLayer = null
 			let standardRouteLayer = null
 			let layerControl = null
+
+			// Gradient color for adjusted severity (0-10 scale)
+			// green (0) → yellow (3.3) → orange (5) → red (7.5) → dark red (10)
+			function severityColor(val) {
+				const stops = [
+					[0, [46, 204, 113]],   // #2ecc71 green
+					[3, [241, 196, 15]],   // #f1c40f yellow
+					[5, [230, 126, 34]],   // #e67e22 orange
+					[7, [231, 76, 60]],    // #e74c3c red
+					[10, [142, 68, 173]],  // #8e44ad purple
+				]
+				const v = Math.max(0, Math.min(10, val))
+				for (let i = 0; i < stops.length - 1; i++) {
+					const [lo, cLo] = stops[i]
+					const [hi, cHi] = stops[i + 1]
+					if (v <= hi) {
+						const t = (v - lo) / (hi - lo)
+						const r = Math.round(cLo[0] + t * (cHi[0] - cLo[0]))
+						const g = Math.round(cLo[1] + t * (cHi[1] - cLo[1]))
+						const b = Math.round(cLo[2] + t * (cHi[2] - cLo[2]))
+						return `rgb(${r},${g},${b})`
+					}
+				}
+				return 'rgb(142,68,173)'
+			}
+
+			// Load all barrier points for map overlay
+			fetch('http://localhost:5001/api/barriers')
+				.then((r) => r.json())
+				.then((barriers) => {
+					barriers.forEach((b) => {
+						const c = severityColor(b.adjusted_severity)
+						L.circleMarker([b.lat, b.lng], {
+							radius: 2,
+							color: c,
+							fillColor: c,
+							fillOpacity: 0.7,
+							weight: 0,
+						})
+							.bindPopup(
+								`<strong>${b.label}</strong><br>Severity: ${b.severity}/5<br>Adjusted: ${b.adjusted_severity}/10`,
+							)
+							.addTo(barriersLayer)
+					})
+					layers['Barrier Points'] = barriersLayer
+					console.log(`Loaded ${barriers.length} barrier points`)
+					// Rebuild layer control if it exists
+					if (layerControl) {
+						layerControl.remove()
+						layerControl = L.control
+							.layers(null, layers, {
+								collapsed: false,
+								position: 'bottomright',
+							})
+							.addTo(map)
+					}
+				})
+				.catch((err) => console.error('Error loading barriers:', err))
 
 			// Load cluster data from API and render visualizations
 			fetch('http://localhost:5001/api/clusters')
@@ -484,12 +544,11 @@
 						heatmap_data.map(([lat, lng, severity]) => [
 							lat,
 							lng,
-							severity / 5,
+							severity / 10,
 						]),
 						{
 							radius: 6,
 							blur: 10,
-							maxZoom: 17,
 							max: 1.0,
 							gradient: {
 								0.4: 'green',
@@ -568,6 +627,23 @@
                     `
 					document.body.appendChild(errorDiv)
 				})
+
+			// Severity legend control (gradient bar for 0-10 scale)
+			const legend = L.control({ position: 'bottomleft' })
+			legend.onAdd = function () {
+				const div = L.DomUtil.create('div')
+				div.style.cssText =
+					'background:white;padding:8px 12px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.2);font-size:12px;margin-bottom:10px;'
+				div.innerHTML =
+					'<strong>Adjusted Severity</strong>' +
+					'<div style="display:flex;align-items:center;margin-top:4px;">' +
+					'<span style="margin-right:4px;">0</span>' +
+					'<div style="width:120px;height:12px;border-radius:3px;background:linear-gradient(to right,rgb(46,204,113),rgb(241,196,15),rgb(230,126,34),rgb(231,76,60),rgb(142,68,173));"></div>' +
+					'<span style="margin-left:4px;">10</span>' +
+					'</div>'
+				return div
+			}
+			legend.addTo(map)
 
 			// Tolerance slider handler
 			const toleranceSlider = document.getElementById('tolerance-slider')

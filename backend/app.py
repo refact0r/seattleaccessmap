@@ -97,6 +97,7 @@ def get_barriers():
                 'lat': float(row['lat']),
                 'lng': float(row['lon']),
                 'severity': int(row['severity']),
+                'adjusted_severity': round(float(row['adjusted_severity']), 1),
                 'label': str(row['label'])
             })
 
