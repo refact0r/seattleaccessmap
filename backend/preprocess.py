@@ -20,11 +20,7 @@ from algorithms.routing import AccessibilityRouter
 from algorithms.clustering import generate_clusters
 
 # Configuration
-CONFIG = {
-    'barrier_influence_radius': 50,  # meters
-    'severity_weight': 1.0,
-    'meters_per_degree': 111000,
-}
+CONFIG = {}
 
 DATA_DIR = Path(__file__).parent / 'data_processed'
 DATA_DIR.mkdir(exist_ok=True)

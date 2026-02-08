@@ -6,8 +6,6 @@ Operates on preprocessed network and barrier data structures.
 
 import networkx as nx
 import osmnx as ox
-import numpy as np
-from scipy.spatial import cKDTree
 import json
 
 
@@ -31,18 +29,14 @@ class AccessibilityRouter:
         self.barrier_tree = barrier_tree
         self.config = config
 
-        # Constants from config
-        self.influence_radius = config['barrier_influence_radius']
-        self.severity_weight = config['severity_weight']
-        self.meters_per_degree = config['meters_per_degree']
-
-    def calculate_route(self, start_lat, start_lng, end_lat, end_lng):
+    def calculate_route(self, start_lat, start_lng, end_lat, end_lng, barrier_weight=1.0):
         """
         Calculate both accessible and standard routes.
 
         Args:
             start_lat, start_lng: Origin coordinates
             end_lat, end_lng: Destination coordinates
+            barrier_weight: How much to penalize barriers (0 = ignore, 10 = max avoid)
 
         Returns:
             dict with 'accessible_route', 'standard_route', and 'stats'
@@ -50,18 +44,30 @@ class AccessibilityRouter:
         Raises:
             ValueError: If no path exists between points
         """
-        # Find nearest nodes
         start_node = ox.distance.nearest_nodes(self.G, start_lng, start_lat)
         end_node = ox.distance.nearest_nodes(self.G, end_lng, end_lat)
 
-        # Calculate both routes
+        snapped_start = (self.G.nodes[start_node]['y'], self.G.nodes[start_node]['x'])
+        snapped_end = (self.G.nodes[end_node]['y'], self.G.nodes[end_node]['x'])
+
         try:
-            route_accessible = nx.shortest_path(
-                self.G_proj,
-                start_node,
-                end_node,
-                weight='total_cost'
-            )
+            if barrier_weight < 0.01:
+                route_accessible = nx.shortest_path(
+                    self.G_proj, start_node, end_node, weight='length'
+                )
+            else:
+                # Non-linear (quadratic) penalty: cost² makes low bw avoid
+                # only the worst edges, high bw avoids all barrier edges.
+                # Linear penalty (bw * cost) only has a single crossover
+                # point between any two paths, producing binary behavior.
+                def edge_weight(_u, _v, data):
+                    length = data.get('length', 0)
+                    cost = data.get('accessibility_cost', 0)
+                    return length + barrier_weight * cost * cost
+
+                route_accessible = nx.shortest_path(
+                    self.G_proj, start_node, end_node, weight=edge_weight
+                )
 
             route_standard = nx.shortest_path(
                 self.G_proj,
@@ -72,9 +78,17 @@ class AccessibilityRouter:
         except nx.NetworkXNoPath:
             raise ValueError("No path found between the specified points")
 
-        # Calculate statistics
-        accessible_stats = self._calculate_route_stats(route_accessible)
-        standard_stats = self._calculate_route_stats(route_standard)
+        # Build weight functions for correct multigraph edge selection
+        def acc_weight(_u, _v, data):
+            l = data.get('length', 0)
+            c = data.get('accessibility_cost', 0)
+            return l + barrier_weight * c * c if barrier_weight >= 0.01 else l
+
+        def std_weight(_u, _v, data):
+            return data.get('length', 0)
+
+        accessible_stats = self._calculate_route_stats(route_accessible, acc_weight)
+        standard_stats = self._calculate_route_stats(route_standard, std_weight)
 
         # Convert to GeoJSON
         accessible_geojson = self._route_to_geojson(route_accessible)
@@ -88,16 +102,25 @@ class AccessibilityRouter:
                 'accessible_barrier_cost': accessible_stats['barrier_cost'],
                 'standard_length': standard_stats['length'],
                 'standard_barrier_cost': standard_stats['barrier_cost']
-            }
+            },
+            'snapped_start': {'lat': snapped_start[0], 'lng': snapped_start[1]},
+            'snapped_end': {'lat': snapped_end[0], 'lng': snapped_end[1]}
         }
 
-    def _calculate_route_stats(self, route):
-        """Calculate length and barrier cost for a route."""
+    def _calculate_route_stats(self, route, weight_fn):
+        """Calculate length and barrier cost for a route.
+
+        Uses weight_fn to select the correct edge when parallel edges exist
+        (MultiDiGraph), matching the edge Dijkstra actually traversed.
+        """
         total_length = 0
         total_barrier_cost = 0
 
         for i in range(len(route) - 1):
-            edge_data = self.G_proj[route[i]][route[i+1]][0]
+            u, v = route[i], route[i + 1]
+            edges = self.G_proj[u][v]
+            best_key = min(edges, key=lambda k: weight_fn(u, v, edges[k]))
+            edge_data = edges[best_key]
             total_length += edge_data['length']
             total_barrier_cost += edge_data['accessibility_cost']
 
@@ -116,63 +139,41 @@ class AccessibilityRouter:
         """
         Pre-calculate accessibility costs for all edges.
 
-        This is called during preprocessing and modifies graph_proj in place.
+        Snaps each barrier point to its nearest edge and accumulates
+        severity costs. Every barrier in the dataset contributes to
+        exactly one edge.
 
         Args:
             graph: OSMnx graph (unprojected, WGS84)
             graph_proj: OSMnx graph (projected to UTM)
             barriers_df: DataFrame with barrier data
-            barrier_tree: cKDTree spatial index for barriers
-            config: Dict with routing configuration
+            barrier_tree: cKDTree spatial index for barriers (unused)
+            config: Dict with routing configuration (unused)
         """
-        influence_radius = config['barrier_influence_radius']
-        severity_weight = config['severity_weight']
-        meters_per_degree = config['meters_per_degree']
-        cos_lat = config['cos_lat']
+        print(f"Snapping {len(barriers_df):,} barriers to nearest edges...")
 
-        print(f"Calculating accessibility costs for {len(graph_proj.edges):,} edges...")
+        # Find nearest edge for each barrier point
+        nearest_edges = ox.distance.nearest_edges(
+            graph, barriers_df['lon'].values, barriers_df['lat'].values
+        )
 
+        # Initialize all edges with zero accessibility cost
         for u, v, key, data in graph_proj.edges(keys=True, data=True):
-            # Get edge midpoint
-            u_lat = graph.nodes[u]['y']
-            u_lng = graph.nodes[u]['x']
-            v_lat = graph.nodes[v]['y']
-            v_lng = graph.nodes[v]['x']
+            data['accessibility_cost'] = 0.0
 
-            mid_lat = (u_lat + v_lat) / 2
-            mid_lng = (u_lng + v_lng) / 2
+        # Accumulate barrier severity on nearest edges
+        for i in range(len(nearest_edges)):
+            u, v, key = int(nearest_edges[i][0]), int(nearest_edges[i][1]), int(nearest_edges[i][2])
+            severity = float(barriers_df.iloc[i]['adjusted_severity'])
+            if graph_proj.has_edge(u, v, key):
+                graph_proj[u][v][key]['accessibility_cost'] += severity
 
-            # Find nearby barriers (query with scaled lon to match tree)
-            radius_degrees = influence_radius / meters_per_degree
-            nearby_indices = barrier_tree.query_ball_point(
-                [mid_lat, mid_lng * cos_lat],
-                radius_degrees
-            )
+        # Set total_cost
+        for u, v, key, data in graph_proj.edges(keys=True, data=True):
+            data['total_cost'] = data.get('length', 0) + data['accessibility_cost']
 
-            # Calculate accessibility penalty
-            if nearby_indices:
-                nearby_barriers = barriers_df.iloc[nearby_indices]
-                barrier_cost = 0
-
-                for _, barrier in nearby_barriers.iterrows():
-                    # Equirectangular distance with cos(lat) correction
-                    dlat = barrier['lat'] - mid_lat
-                    dlon = (barrier['lon'] - mid_lng) * cos_lat
-                    dist = np.sqrt(dlat**2 + dlon**2) * meters_per_degree
-
-                    if dist < influence_radius:
-                        # Inverse distance weighting
-                        proximity_factor = 1 - (dist / influence_radius)
-                        barrier_cost += barrier['adjusted_severity'] * proximity_factor
-
-                accessibility_penalty = barrier_cost * severity_weight
-            else:
-                accessibility_penalty = 0
-
-            # Store costs
-            base_length = data.get('length', 0)
-            graph_proj[u][v][key]['length'] = base_length
-            graph_proj[u][v][key]['accessibility_cost'] = accessibility_penalty
-            graph_proj[u][v][key]['total_cost'] = base_length + accessibility_penalty
-
-        print("Edge costs calculated!")
+        # Report stats
+        costs = [d['accessibility_cost'] for _, _, _, d in graph_proj.edges(keys=True, data=True)]
+        nonzero = sum(1 for c in costs if c > 0)
+        print(f"Edge costs calculated! {nonzero:,}/{len(costs):,} edges have barriers "
+              f"({100*nonzero/len(costs):.1f}%)")

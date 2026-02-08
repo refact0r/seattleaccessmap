@@ -146,21 +146,31 @@ def calculate_route():
         start_lng = data['start_lng']
         end_lat = data['end_lat']
         end_lng = data['end_lng']
+        barrier_weight = data.get('barrier_weight', 1.0)  # Default to 1.0 if not provided
 
         print(f"Calculating route: ({start_lat}, {start_lng}) → ({end_lat}, {end_lng})")
+        print(f"  Barrier weight: {barrier_weight:.2f}")
 
-        result = router.calculate_route(start_lat, start_lng, end_lat, end_lng)
+        result = router.calculate_route(start_lat, start_lng, end_lat, end_lng, barrier_weight)
 
         print(f"✓ Routes calculated successfully")
 
         return jsonify(result)
 
     except ValueError as e:
+        print(f"ValueError: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 400
     except KeyError as e:
+        print(f"KeyError: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': f'Missing parameter: {e}'}), 400
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
