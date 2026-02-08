@@ -37,12 +37,12 @@ def main():
     # Load barrier data
     print("\n1. Loading barrier data...")
     barriers_df = pd.read_csv('../data/data_clean.csv')
-    barriers_df = barriers_df[barriers_df['severity'].notna()].copy()
+    barriers_df = barriers_df[barriers_df['adjusted_severity'].notna()].copy()
     print(f"   Loaded {len(barriers_df):,} barriers with severity ratings")
 
     # Generate clusters (fast, only depends on barrier data)
     print("\n2. Generating HDBSCAN clusters...")
-    clusters_data = generate_clusters(barriers_df, min_severity=3)
+    clusters_data = generate_clusters(barriers_df, min_severity=4)
     with open(DATA_DIR / 'clusters.pkl', 'wb') as f:
         pickle.dump(clusters_data, f)
     print(f"   ✓ Generated {len(clusters_data['clusters'])} clusters")

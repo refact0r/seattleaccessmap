@@ -163,7 +163,7 @@ class AccessibilityRouter:
                     if dist < influence_radius:
                         # Inverse distance weighting
                         proximity_factor = 1 - (dist / influence_radius)
-                        barrier_cost += barrier['severity'] * proximity_factor
+                        barrier_cost += barrier['adjusted_severity'] * proximity_factor
 
                 accessibility_penalty = barrier_cost * severity_weight
             else:

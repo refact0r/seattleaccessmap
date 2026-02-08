@@ -25,14 +25,14 @@ def generate_clusters(barriers_df, min_severity=3):
     Generate HDBSCAN clusters from barrier data.
 
     Args:
-        barriers_df: DataFrame with columns: lat, lon, severity, label, attr_id, neighborhood
-        min_severity: Only cluster barriers with severity >= this value (default: 3)
+        barriers_df: DataFrame with columns: lat, lon, adjusted_severity, label, attr_id, neighborhood
+        min_severity: Only cluster barriers with adjusted_severity >= this value (default: 4)
 
     Returns:
         dict with 'config', 'clusters', and 'heatmap_data' keys
     """
     # Filter to severe issues
-    df_severe = barriers_df[barriers_df["severity"] >= min_severity].copy()
+    df_severe = barriers_df[barriers_df["adjusted_severity"] >= min_severity].copy()
 
     if len(df_severe) == 0:
         return {
@@ -62,7 +62,7 @@ def generate_clusters(barriers_df, min_severity=3):
                 "zoom_start": 12
             },
             "clusters": [],
-            "heatmap_data": df_severe[["lat", "lon", "severity"]].values.tolist()
+            "heatmap_data": df_severe[["lat", "lon", "adjusted_severity"]].values.tolist()
         }
 
     # Calculate type breakdown per cluster
@@ -74,8 +74,8 @@ def generate_clusters(barriers_df, min_severity=3):
     # Calculate cluster statistics
     cluster_stats = clustered_df.groupby("cluster").agg(
         count=("attr_id", "size"),
-        mean_severity=("severity", "mean"),
-        max_severity=("severity", "max"),
+        mean_severity=("adjusted_severity", "mean"),
+        max_severity=("adjusted_severity", "max"),
         n_types=("label", "nunique"),
         top_type=("label", lambda x: x.mode().iloc[0]),
         top_neighborhood=("neighborhood", lambda x: x.mode().iloc[0] if len(x) > 0 else "Unknown"),
@@ -149,5 +149,5 @@ def generate_clusters(barriers_df, min_severity=3):
             "zoom_start": 12,
         },
         "clusters": clusters_export,
-        "heatmap_data": df_severe[["lat", "lon", "severity"]].values.tolist()
+        "heatmap_data": df_severe[["lat", "lon", "adjusted_severity"]].values.tolist()
     }
