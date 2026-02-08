@@ -1,5 +1,6 @@
 export function initClusters({
 	map,
+	renderer,
 	themeColors,
 	severityColor,
 	onBackendError,
@@ -62,6 +63,7 @@ export function initClusters({
 						weight: 2,
 						opacity: 0.6,
 						interactive: interactivityEnabled,
+						renderer,
 					})
 						.bindPopup(popupContent)
 						.addTo(clustersLayer)
@@ -76,6 +78,7 @@ export function initClusters({
 						fillOpacity: 0.7,
 						weight: 1,
 						interactive: interactivityEnabled,
+						renderer,
 					})
 						.bindPopup(popupContent)
 						.addTo(clustersLayer)

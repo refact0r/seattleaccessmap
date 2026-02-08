@@ -161,7 +161,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 						},
 					)
 						.addTo(map)
-						.bindPopup('Route Start (snapped to network)')
+						.bindPopup('Route Start')
 				}
 				if (data.snapped_end) {
 					if (destinationMarker) map.removeLayer(destinationMarker)
@@ -172,7 +172,7 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 						},
 					)
 						.addTo(map)
-						.bindPopup('Route End (snapped to network)')
+						.bindPopup('Route End')
 				}
 
 				if (window.accessibleRouteLayer)
@@ -281,4 +281,8 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 	// Keep inline example links working.
 	window.setExample1 = setExample1
 	window.setExample2 = setExample2
+
+	return {
+		resetClickMode: () => setClickMode(null),
+	}
 }

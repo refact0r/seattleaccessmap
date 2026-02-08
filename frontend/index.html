@@ -145,6 +145,11 @@
 							</div>
 						</div>
 					</div>
+
+					<div class="panel-section">
+						<h3>Fix Priorities</h3>
+						<div id="priorities-list" class="priorities-list"></div>
+					</div>
 				</div>
 
 				<!-- ═══ ROUTE VIEW ═══ -->
@@ -264,13 +269,26 @@
 			<div class="map-container">
 				<div id="map"></div>
 
-				<!-- Severity Legend Overlay -->
-				<div class="map-overlay legend">
-					<div class="legend-title">Adjusted Severity</div>
-					<div class="legend-row">
-						<span class="legend-min">0</span>
-						<div class="legend-bar"></div>
-						<span class="legend-max">10</span>
+				<!-- Legend Overlay -->
+				<div class="legend-stack" id="legend-stack">
+					<div class="map-overlay legend legend-base" id="legend-severity">
+						<div class="legend-title">Adjusted Severity</div>
+						<div class="legend-row">
+							<span class="legend-min">0</span>
+							<div class="legend-bar"></div>
+							<span class="legend-max">10</span>
+						</div>
+					</div>
+					<div
+						class="map-overlay legend legend-priorities is-hidden"
+						id="legend-priorities"
+					>
+						<div class="legend-title">Fix Priority Impact</div>
+						<div class="legend-row">
+							<span class="legend-min">Low</span>
+							<div class="legend-bar legend-bar-priority"></div>
+							<span class="legend-max">High</span>
+						</div>
 					</div>
 				</div>
 
@@ -287,6 +305,10 @@
 					<div class="layer-toggle">
 						<input type="checkbox" id="toggle-clusters" />
 						<label for="toggle-clusters">Hotspot Clusters</label>
+					</div>
+					<div class="layer-toggle">
+						<input type="checkbox" id="toggle-priorities" />
+						<label for="toggle-priorities">Fix Priorities</label>
 					</div>
 				</div>
 			</div>

@@ -1,11 +1,10 @@
-export function initBarriers({ map, severityColor, onBackendError }) {
+export function initBarriers({ map, renderer, severityColor, onBackendError }) {
 	let allBarriers = []
 	let allBarrierMarkers = []
 	let renderToken = 0
 	let interactivityEnabled = true
 
 	const barriersLayer = L.layerGroup().addTo(map)
-	const barrierRenderer = L.canvas({ padding: 0.5 })
 	const barrierPopup = L.popup({ closeButton: true })
 
 	function buildBarrierMarkers(barriers) {
@@ -17,7 +16,7 @@ export function initBarriers({ map, severityColor, onBackendError }) {
 				fillColor: c,
 				fillOpacity: 0.7,
 				weight: 0,
-				renderer: barrierRenderer,
+				renderer,
 			})
 			marker.on('click', () => {
 				const content = `<strong>${b.label}</strong><br>Severity: ${b.severity}/5<br>Adjusted: ${b.adjusted_severity}/10`

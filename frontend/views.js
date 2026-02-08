@@ -1,4 +1,4 @@
-export function initViewTabs({ map, onAnalyticsOpen }) {
+export function initViewTabs({ map, onAnalyticsOpen, onRouteLeave }) {
 	const navTabs = document.querySelectorAll('.nav-tab')
 	const viewContents = document.querySelectorAll('.view-content')
 
@@ -17,6 +17,9 @@ export function initViewTabs({ map, onAnalyticsOpen }) {
 			// View-specific actions
 			if (viewId === 'analytics') {
 				onAnalyticsOpen()
+			}
+			if (viewId !== 'route' && onRouteLeave) {
+				onRouteLeave()
 			}
 
 			// Invalidate map size after layout change

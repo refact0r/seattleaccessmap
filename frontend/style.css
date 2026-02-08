@@ -72,6 +72,7 @@
 		var(--severity-7),
 		var(--severity-10)
 	);
+	--priority-gradient: linear-gradient(to right, var(--border), var(--accent));
 
 	--slider-gradient: linear-gradient(to right, var(--accent), var(--success));
 }
@@ -321,9 +322,18 @@ a:hover {
 	color: var(--text-muted);
 }
 
-.map-overlay.legend {
+.legend-stack {
+	position: absolute;
+	z-index: 800;
 	bottom: 1rem;
 	left: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.legend-stack .map-overlay {
+	position: static;
 }
 
 .map-overlay.layer-toggles {
@@ -361,6 +371,10 @@ a:hover {
 	height: 0.75rem;
 	border-radius: 0.1875rem;
 	background: var(--severity-gradient);
+}
+
+.legend-bar-priority {
+	background: var(--priority-gradient);
 }
 
 .popup-card {
@@ -903,6 +917,83 @@ input[type='range']::-moz-range-progress {
 	background: var(--surface);
 	color: var(--border);
 	font-weight: 400;
+}
+
+/* ── Fix Priorities ── */
+.section-desc {
+	font-size: 0.75rem;
+	color: var(--text-subtle);
+	margin-bottom: 0.75rem;
+}
+
+.priorities-list {
+	max-height: 25rem;
+	overflow-y: auto;
+}
+
+.priorities-list::-webkit-scrollbar {
+	width: 0.375rem;
+}
+
+.priorities-list::-webkit-scrollbar-thumb {
+	background: var(--border);
+	border-radius: 0.1875rem;
+}
+
+.priority-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.375rem;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	font-size: 0.75rem;
+}
+
+.priority-item:hover {
+	background: var(--surface);
+}
+
+.priority-rank {
+	flex-shrink: 0;
+	width: 1.75rem;
+	height: 1.75rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--radius-sm);
+	color: #fff;
+	font-size: 0.6875rem;
+	font-weight: 400;
+}
+
+.priority-info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.125rem;
+}
+
+.priority-neighborhood {
+	color: var(--text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.priority-detail {
+	color: var(--text-subtle);
+	font-size: 0.6875rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.priority-impact {
+	flex-shrink: 0;
+	color: var(--text-muted);
+	font-size: 0.6875rem;
 }
 
 /* ── Map click cursor ── */

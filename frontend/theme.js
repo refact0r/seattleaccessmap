@@ -79,10 +79,11 @@ export const themeColors = {
 	routeAccessible: cssVar('--route-accessible'),
 	routeStandard: cssVar('--route-standard'),
 	heatmapGradient: {
-		0.4: cssVar('--heatmap-low'),
-		0.6: cssVar('--heatmap-mid'),
-		0.8: cssVar('--heatmap-high'),
-		1.0: cssVar('--heatmap-max'),
+		0.2: cssVar('--severity-0'),
+		0.4: cssVar('--severity-3'),
+		0.6: cssVar('--severity-5'),
+		0.8: cssVar('--severity-7'),
+		1.0: cssVar('--severity-10'),
 	},
 	chartPalette: [
 		cssVar('--chart-1'),
