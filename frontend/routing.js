@@ -4,6 +4,100 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 	let destinationMarker = null
 
 	const toleranceSlider = document.getElementById('tolerance-slider')
+	const prefersReducedMotion = window.matchMedia(
+		'(prefers-reduced-motion: reduce)',
+	).matches
+	const routeRenderer = L.canvas()
+	routeRenderer.addTo(map)
+
+	function extractRouteCoords(geojson) {
+		if (!geojson) return []
+
+		const coords = []
+		const push = (coord) => {
+			if (!coord || coord.length < 2) return
+			const latLng = [coord[1], coord[0]]
+			const last = coords[coords.length - 1]
+			if (!last || last[0] !== latLng[0] || last[1] !== latLng[1]) {
+				coords.push(latLng)
+			}
+		}
+
+		const addGeometry = (geometry) => {
+			if (!geometry) return
+			if (geometry.type === 'LineString') {
+				geometry.coordinates.forEach(push)
+				return
+			}
+			if (geometry.type === 'MultiLineString') {
+				geometry.coordinates.forEach((line) => line.forEach(push))
+			}
+		}
+
+		if (geojson.type === 'FeatureCollection') {
+			geojson.features.forEach((feature) => addGeometry(feature.geometry))
+		} else if (geojson.type === 'Feature') {
+			addGeometry(geojson.geometry)
+		} else {
+			addGeometry(geojson)
+		}
+
+		return coords
+	}
+
+	function animateRouteCoords(layer, coords) {
+		if (!layer || !coords || coords.length < 2) return
+		if (prefersReducedMotion) {
+			layer.setLatLngs(coords)
+			return
+		}
+
+		let totalLength = 0
+		const cumulative = [0]
+		for (let i = 1; i < coords.length; i += 1) {
+			totalLength += map.distance(coords[i - 1], coords[i])
+			cumulative[i] = totalLength
+		}
+		const duration = totalLength * 0.3
+
+		const start = performance.now()
+		const tick = (now) => {
+			const elapsed = now - start
+			const t = Math.min(elapsed / duration, 1)
+			const targetDist = totalLength * t
+
+			let idx = 1
+			while (idx < cumulative.length && cumulative[idx] < targetDist) {
+				idx += 1
+			}
+
+			const current = coords.slice(0, Math.min(idx + 1, coords.length))
+			if (idx < coords.length) {
+				const prevDist = cumulative[idx - 1] || 0
+				const segLength =
+					cumulative[idx] - prevDist ||
+					map.distance(coords[idx - 1], coords[idx])
+				const segT =
+					segLength > 0 ? (targetDist - prevDist) / segLength : 0
+				const startPt = coords[idx - 1]
+				const endPt = coords[idx]
+				const interp = [
+					startPt[0] + (endPt[0] - startPt[0]) * segT,
+					startPt[1] + (endPt[1] - startPt[1]) * segT,
+				]
+				current[current.length - 1] = interp
+			}
+
+			layer.setLatLngs(current)
+			if (t < 1) {
+				requestAnimationFrame(tick)
+			} else {
+				layer.setLatLngs(coords)
+			}
+		}
+
+		requestAnimationFrame(tick)
+	}
 
 	function setClickMode(mode) {
 		clickMode = mode
@@ -180,30 +274,56 @@ export function initRouting({ map, themeColors, setOverlayInteractivity }) {
 				if (window.standardRouteLayer)
 					map.removeLayer(window.standardRouteLayer)
 
-				window.accessibleRouteLayer = L.geoJSON(data.accessible_route, {
-					style: {
-						color: themeColors.routeAccessible,
-						weight: 5,
-						opacity: 0.8,
-					},
-				}).addTo(map)
+				const accessibleCoords = extractRouteCoords(
+					data.accessible_route,
+				)
+				const standardCoords = extractRouteCoords(data.standard_route)
 
-				window.standardRouteLayer = L.geoJSON(data.standard_route, {
-					style: {
-						color: themeColors.routeStandard,
-						weight: 5,
-						opacity: 0.8,
-					},
-				}).addTo(map)
+				window.accessibleRouteLayer =
+					accessibleCoords.length > 1
+						? L.polyline(accessibleCoords, {
+								color: themeColors.routeAccessible,
+								weight: 5,
+								opacity: 0.8,
+								className: 'route-path route-path--accessible',
+								renderer: routeRenderer,
+							}).addTo(map)
+						: null
 
+				window.standardRouteLayer =
+					standardCoords.length > 1
+						? L.polyline(standardCoords, {
+								color: themeColors.routeStandard,
+								weight: 5,
+								opacity: 0.8,
+								className: 'route-path route-path--standard',
+								renderer: routeRenderer,
+							}).addTo(map)
+						: null
+
+				const allBounds = L.latLngBounds(
+					accessibleCoords.concat(standardCoords),
+				)
 				displayRouteStats(data.stats)
 
-				const allBounds = L.featureGroup([
-					window.accessibleRouteLayer,
-					window.standardRouteLayer,
-				]).getBounds()
 				map.fitBounds(allBounds, { padding: [50, 50] })
 
+				let didAnimate = false
+				const runAnimations = () => {
+					if (didAnimate) return
+					didAnimate = true
+					animateRouteCoords(
+						window.accessibleRouteLayer,
+						accessibleCoords,
+					)
+					animateRouteCoords(
+						window.standardRouteLayer,
+						standardCoords,
+					)
+				}
+
+				map.once('moveend', runAnimations)
+				setTimeout(runAnimations, 160)
 				showStatus('Routes calculated!', 'success')
 			} catch (error) {
 				console.error('Error calculating route:', error)
