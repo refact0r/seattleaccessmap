@@ -4,16 +4,22 @@ Merges Project Sidewalk accessibility data with ACS income data via the lookup t
 """
 
 import sys
-sys.path.insert(0, "data")
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from data.neighborhood_lookup import NEIGHBORHOOD_LOOKUP
 
+GRAPHS_DIR = Path(__file__).parent / "graphs"
+GRAPHS_DIR.mkdir(exist_ok=True)
+
 # --- Load data ---
-sidewalk = pd.read_csv("data/data_clean.csv")
-income_raw = pd.read_csv("data/neighborhood-incomes.csv")
+sidewalk = pd.read_csv(PROJECT_ROOT / "data/data_clean.csv")
+income_raw = pd.read_csv(PROJECT_ROOT / "data/neighborhood-incomes.csv")
 
 # --- Compute average adjusted severity per clean neighborhood ---
 severity_by_hood = (
@@ -97,8 +103,8 @@ ax.set_title(f"Avg Household Income vs Avg Accessibility Barrier Severity\nby Se
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig("graphs/income_vs_severity_scatter.png", dpi=150)
-print("Saved: graphs/income_vs_severity_scatter.png")
+plt.savefig(GRAPHS_DIR / "income_vs_severity_scatter.png", dpi=150)
+print(f"Saved: {GRAPHS_DIR / 'income_vs_severity_scatter.png'}")
 
 # --- Plot 2: Scatter — Per Capita Income vs Avg Adjusted Severity ---
 fig, ax = plt.subplots(figsize=(12, 8))
@@ -124,8 +130,8 @@ ax.set_title(f"Per Capita Income vs Avg Accessibility Barrier Severity\nby Seatt
 ax.legend()
 ax.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig("graphs/income_vs_severity_scatter_percapita.png", dpi=150)
-print("Saved: graphs/income_vs_severity_scatter_percapita.png")
+plt.savefig(GRAPHS_DIR / "income_vs_severity_scatter_percapita.png", dpi=150)
+print(f"Saved: {GRAPHS_DIR / 'income_vs_severity_scatter_percapita.png'}")
 
 # --- Plot 3: Bar chart — neighborhoods sorted by severity, colored by income ---
 sorted_df = grouped.sort_values("avg_severity", ascending=True)
@@ -150,8 +156,8 @@ ax.set_ylabel("Neighborhood", fontsize=12)
 ax.set_title("Accessibility Barrier Severity by Neighborhood\n(color = household income level)", fontsize=14)
 ax.grid(True, axis="x", alpha=0.3)
 plt.tight_layout()
-plt.savefig("graphs/severity_by_neighborhood_income_colored.png", dpi=150)
-print("Saved: graphs/severity_by_neighborhood_income_colored.png")
+plt.savefig(GRAPHS_DIR / "severity_by_neighborhood_income_colored.png", dpi=150)
+print(f"Saved: {GRAPHS_DIR / 'severity_by_neighborhood_income_colored.png'}")
 
 plt.close("all")
-print("\nDone! All graphs saved to graphs/")
+print(f"\nDone! All graphs saved to {GRAPHS_DIR}/")
