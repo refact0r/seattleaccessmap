@@ -214,6 +214,10 @@ a:hover {
 	gap: 0.125rem;
 }
 
+.github-link {
+	text-decoration: none;
+}
+
 .nav-tabs {
 	display: flex;
 	gap: 0.25rem;
@@ -222,11 +226,13 @@ a:hover {
 .nav-tab {
 	padding: 0.375rem 1rem;
 	background: transparent;
+	border: 1px solid var(--border);
 	color: var(--text-subtle);
 	border-radius: var(--radius-sm);
 	cursor: pointer;
 	font-size: 0.875rem;
 	font-weight: 400;
+	font-family: var(--font-mono);
 }
 
 .nav-tab:hover {
