@@ -1,4 +1,4 @@
-# DubsTech Datathon Project: City Accessibility Analysis
+# DubsTech Datathon Project: seattleAccessMap
 
 ## Overview
 
