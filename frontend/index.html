@@ -217,13 +217,14 @@
 							</p>
 							<p>
 								We estimate <em>edge_usage</em> by sampling
-								~1,000 random shortest routes and counting how
-								often each street segment appears. This
-								highlights barriers on important roads and
-								connectors. The log keeps usage from
-								overpowering severity, so a small issue on a
-								busy street still ranks below a severe
-								obstruction in a moderately used area.
+								~1,000 random nodes and computing shortest paths
+                                from each to every other node in the pedestrian
+                                network. We then count how often each street
+                                segment appears. This highlights barriers on
+                                important thoroughfares and connectors. The log
+                                keeps usage from overpowering severity, so a
+                                small issue on a busy street still ranks below a
+                                severe obstruction in a moderately used area.
 							</p>
 							<p>
 								The map highlights the <strong>top 200</strong>
